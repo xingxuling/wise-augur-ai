@@ -14,7 +14,131 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_readings: {
+        Row: {
+          bazi_record_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          reading_type: string
+          user_id: string
+        }
+        Insert: {
+          bazi_record_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          reading_type: string
+          user_id: string
+        }
+        Update: {
+          bazi_record_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          reading_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_readings_bazi_record_id_fkey"
+            columns: ["bazi_record_id"]
+            isOneToOne: false
+            referencedRelation: "bazi_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bazi_records: {
+        Row: {
+          birth_day: number
+          birth_hour: number
+          birth_month: number
+          birth_year: number
+          created_at: string | null
+          gender: string | null
+          id: string
+          result: Json
+          user_id: string
+        }
+        Insert: {
+          birth_day: number
+          birth_hour: number
+          birth_month: number
+          birth_year: number
+          created_at?: string | null
+          gender?: string | null
+          id?: string
+          result: Json
+          user_id: string
+        }
+        Update: {
+          birth_day?: number
+          birth_hour?: number
+          birth_month?: number
+          birth_year?: number
+          created_at?: string | null
+          gender?: string | null
+          id?: string
+          result?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id: string
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          plan_type: string
+          started_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          plan_type: string
+          started_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          plan_type?: string
+          started_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
