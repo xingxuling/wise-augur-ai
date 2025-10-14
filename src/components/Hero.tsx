@@ -1,8 +1,40 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Star } from "lucide-react";
 import heroBackground from "@/assets/hero-background.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 const Hero = () => {
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // 检查认证状态
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+
+    checkAuth();
+
+    // 监听认证状态变化
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session?.user);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleStartClick = () => {
+    if (isAuthenticated) {
+      // 跳转到八字测算页面（稍后创建）
+      navigate("/bazi");
+    } else {
+      // 跳转到登录页面
+      navigate("/auth");
+    }
+  };
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background */}
@@ -39,9 +71,9 @@ const Hero = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-in slide-in-from-bottom duration-700 delay-300">
-            <Button variant="hero" size="xl" className="group">
+            <Button variant="hero" size="xl" className="group" onClick={handleStartClick}>
               <Sparkles className="w-5 h-5 group-hover:animate-spin" />
-              开始测算
+              {isAuthenticated ? "开始测算" : "立即体验"}
             </Button>
             <Button variant="mystical" size="xl">
               了解更多
