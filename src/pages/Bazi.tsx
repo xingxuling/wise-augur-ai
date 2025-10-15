@@ -185,92 +185,103 @@ const Bazi = () => {
         {!result && (
           <Card className="p-8 bg-card/80 backdrop-blur-md border-primary/20">
             <form onSubmit={handleCalculate} className="space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="year">出生年份</Label>
-                  <Input
-                    id="year"
-                    type="number"
-                    placeholder="1990"
-                    value={year}
-                    onChange={(e) => setYear(e.target.value)}
-                    required
-                    min="1900"
-                    max="2100"
-                  />
+              {/* 移动端优化：紧凑布局 */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="year" className="text-sm">出生年份</Label>
+                    <Input
+                      id="year"
+                      type="number"
+                      placeholder="1990"
+                      value={year}
+                      onChange={(e) => setYear(e.target.value)}
+                      required
+                      min="1900"
+                      max="2100"
+                      className="text-base"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="month" className="text-sm">月份</Label>
+                    <Input
+                      id="month"
+                      type="number"
+                      placeholder="1-12"
+                      value={month}
+                      onChange={(e) => setMonth(e.target.value)}
+                      required
+                      min="1"
+                      max="12"
+                      className="text-base"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="month">月份</Label>
-                  <Input
-                    id="month"
-                    type="number"
-                    placeholder="1"
-                    value={month}
-                    onChange={(e) => setMonth(e.target.value)}
-                    required
-                    min="1"
-                    max="12"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="day">日期</Label>
-                  <Input
-                    id="day"
-                    type="number"
-                    placeholder="1"
-                    value={day}
-                    onChange={(e) => setDay(e.target.value)}
-                    required
-                    min="1"
-                    max="31"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="hour">时辰(0-23)</Label>
-                  <Input
-                    id="hour"
-                    type="number"
-                    placeholder="12"
-                    value={hour}
-                    onChange={(e) => setHour(e.target.value)}
-                    required
-                    min="0"
-                    max="23"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="minute">分钟(0-59)</Label>
-                  <Input
-                    id="minute"
-                    type="number"
-                    placeholder="0"
-                    value={minute}
-                    onChange={(e) => setMinute(e.target.value)}
-                    required
-                    min="0"
-                    max="59"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="day" className="text-sm">日期</Label>
+                    <Input
+                      id="day"
+                      type="number"
+                      placeholder="1-31"
+                      value={day}
+                      onChange={(e) => setDay(e.target.value)}
+                      required
+                      min="1"
+                      max="31"
+                      className="text-base"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city" className="text-sm">出生城市</Label>
+                    <select
+                      id="city"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-base"
+                    >
+                      <option value="北京">北京</option>
+                      <option value="上海">上海</option>
+                      <option value="广州">广州</option>
+                      <option value="深圳">深圳</option>
+                      <option value="成都">成都</option>
+                      <option value="杭州">杭州</option>
+                      <option value="重庆">重庆</option>
+                      <option value="西安">西安</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="city">出生城市</Label>
-                  <select
-                    id="city"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="北京">北京</option>
-                    <option value="上海">上海</option>
-                    <option value="广州">广州</option>
-                    <option value="深圳">深圳</option>
-                    <option value="成都">成都</option>
-                    <option value="杭州">杭州</option>
-                    <option value="重庆">重庆</option>
-                    <option value="西安">西安</option>
-                  </select>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="hour" className="text-sm">出生时辰</Label>
+                    <Input
+                      id="hour"
+                      type="number"
+                      placeholder="0-23"
+                      value={hour}
+                      onChange={(e) => setHour(e.target.value)}
+                      required
+                      min="0"
+                      max="23"
+                      className="text-base"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="minute" className="text-sm">分钟</Label>
+                    <Input
+                      id="minute"
+                      type="number"
+                      placeholder="0-59"
+                      value={minute}
+                      onChange={(e) => setMinute(e.target.value)}
+                      required
+                      min="0"
+                      max="59"
+                      className="text-base"
+                    />
+                  </div>
                 </div>
               </div>
 

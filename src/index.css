@@ -17,9 +17,11 @@ All colors MUST be HSL.
     --popover: 240 10% 6%;
     --popover-foreground: 45 100% 95%;
 
+    /* 中国风配色：紫微星（紫色）+ 金玉（金色） */
     --primary: 280 85% 65%;
     --primary-foreground: 45 100% 98%;
     --primary-glow: 280 85% 75%;
+    --primary-dark: 280 85% 45%;
 
     --secondary: 220 70% 50%;
     --secondary-foreground: 45 100% 98%;
@@ -27,8 +29,10 @@ All colors MUST be HSL.
     --muted: 240 5% 20%;
     --muted-foreground: 240 5% 65%;
 
+    /* 强调色：琥珀金 */
     --accent: 45 95% 60%;
     --accent-foreground: 240 10% 10%;
+    --accent-glow: 45 95% 70%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 45 100% 98%;
