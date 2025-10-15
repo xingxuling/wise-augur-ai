@@ -14,6 +14,7 @@ const baziInputSchema = z.object({
   month: z.number().min(1).max(12),
   day: z.number().min(1).max(31),
   hour: z.number().min(0).max(23),
+  minute: z.number().min(0).max(59),
 });
 
 type BaziResult = {
@@ -36,10 +37,14 @@ const Bazi = () => {
   const [month, setMonth] = useState("");
   const [day, setDay] = useState("");
   const [hour, setHour] = useState("");
+  const [minute, setMinute] = useState("0");
+  const [city, setCity] = useState("北京");
   const [result, setResult] = useState<BaziResult | null>(null);
   const [recordId, setRecordId] = useState<string>("");
   const [aiReading, setAiReading] = useState<string>("");
   const [isLoadingReading, setIsLoadingReading] = useState(false);
+  const [showProfessional, setShowProfessional] = useState(false);
+  const [activeReadingTab, setActiveReadingTab] = useState<string>("basic");
 
   useEffect(() => {
     // 检查用户是否已登录
@@ -70,6 +75,7 @@ const Bazi = () => {
         month: parseInt(month),
         day: parseInt(day),
         hour: parseInt(hour),
+        minute: parseInt(minute),
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -91,6 +97,8 @@ const Bazi = () => {
           birthMonth: parseInt(month),
           birthDay: parseInt(day),
           birthHour: parseInt(hour),
+          birthMinute: parseInt(minute),
+          city: city,
         },
       });
 
@@ -232,6 +240,40 @@ const Bazi = () => {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="minute">分钟(0-59)</Label>
+                  <Input
+                    id="minute"
+                    type="number"
+                    placeholder="0"
+                    value={minute}
+                    onChange={(e) => setMinute(e.target.value)}
+                    required
+                    min="0"
+                    max="59"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="city">出生城市</Label>
+                  <select
+                    id="city"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="北京">北京</option>
+                    <option value="上海">上海</option>
+                    <option value="广州">广州</option>
+                    <option value="深圳">深圳</option>
+                    <option value="成都">成都</option>
+                    <option value="杭州">杭州</option>
+                    <option value="重庆">重庆</option>
+                    <option value="西安">西安</option>
+                  </select>
+                </div>
+              </div>
+
               <Button
                 type="submit"
                 variant="hero"
@@ -278,6 +320,18 @@ const Bazi = () => {
                 ))}
               </div>
 
+              {/* 真太阳时修正说明 */}
+              {(result as any).trueSolarTime && (
+                <div className="border-t border-border pt-6 mb-6">
+                  <h3 className="text-lg font-semibold mb-2">真太阳时修正</h3>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>原始时间：{(result as any).trueSolarTime.original.hour}:{(result as any).trueSolarTime.original.minute.toString().padStart(2, '0')}</p>
+                    <p>修正时间：{(result as any).trueSolarTime.corrected.hour}:{(result as any).trueSolarTime.corrected.minute.toString().padStart(2, '0')}</p>
+                    <p className="text-primary">{(result as any).trueSolarTime.note}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Wuxing Analysis */}
               <div className="border-t border-border pt-6">
                 <h3 className="text-xl font-semibold mb-4">五行分析</h3>
@@ -295,29 +349,134 @@ const Bazi = () => {
                   </div>
                 )}
               </div>
+
+              {/* 专业解读（可展开） */}
+              {!showProfessional && (
+                <div className="border-t border-border pt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowProfessional(true)}
+                    className="w-full"
+                  >
+                    查看专业解读（格局、用神、十神）
+                  </Button>
+                </div>
+              )}
+
+              {showProfessional && (
+                <>
+                  {/* 十神分析 */}
+                  {(result as any).shishenAnalysis && (
+                    <div className="border-t border-border pt-6">
+                      <h3 className="text-xl font-semibold mb-4">十神分析</h3>
+                      <div className="grid grid-cols-4 gap-4">
+                        {['year', 'month', 'day', 'hour'].map((key, index) => (
+                          <div key={key} className="text-center">
+                            <div className="text-sm text-muted-foreground mb-2">
+                              {['年柱', '月柱', '日柱', '时柱'][index]}
+                            </div>
+                            <div className="text-lg font-semibold text-primary">
+                              {(result as any).shishenAnalysis[key].gan}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 格局判断 */}
+                  {(result as any).pattern && (
+                    <div className="border-t border-border pt-6">
+                      <h3 className="text-xl font-semibold mb-4">格局判断</h3>
+                      <div className="bg-background/50 rounded-lg p-4 border border-primary/20">
+                        <p className="text-lg font-semibold text-primary mb-2">
+                          {(result as any).pattern.pattern}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {(result as any).pattern.description}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 用神分析 */}
+                  {(result as any).yongshen && (
+                    <div className="border-t border-border pt-6">
+                      <h3 className="text-xl font-semibold mb-4">用神分析</h3>
+                      <div className="bg-background/50 rounded-lg p-4 border border-primary/20">
+                        <p className="text-lg font-semibold text-primary mb-2">
+                          用神：{(result as any).yongshen.yongshen}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {(result as any).yongshen.description}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 日主强弱 */}
+                  {(result as any).dayMasterStrength && (
+                    <div className="border-t border-border pt-6">
+                      <h3 className="text-xl font-semibold mb-4">日主强弱</h3>
+                      <div className="bg-background/50 rounded-lg p-4 border border-primary/20">
+                        <p className="text-lg font-semibold text-primary">
+                          {(result as any).dayMasterStrength}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </Card>
 
             {/* AI Reading */}
             <Card className="p-8 bg-card/80 backdrop-blur-md border-primary/20">
               <h2 className="text-2xl font-bold text-gradient mb-6">AI命理解读</h2>
               
-              <div className="flex flex-wrap gap-3 mb-6">
-                {['general', 'career', 'love', 'wealth', 'health'].map((type) => (
-                  <Button
-                    key={type}
-                    variant="mystical"
-                    onClick={() => handleAiReading(type)}
-                    disabled={isLoadingReading}
-                  >
-                    {{
-                      general: '综合运势',
-                      career: '事业运势',
-                      love: '感情运势',
-                      wealth: '财富运势',
-                      health: '健康运势',
-                    }[type]}
-                  </Button>
-                ))}
+              <div className="mb-6">
+                <div className="flex gap-2 mb-4 border-b border-border">
+                  {[
+                    { key: 'basic', label: '基础解读' },
+                    { key: 'professional', label: '专业解读' },
+                    { key: 'scenario', label: '场景建议' },
+                  ].map((tab) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => {
+                        setActiveReadingTab(tab.key);
+                        handleAiReading(tab.key);
+                      }}
+                      className={`px-4 py-2 font-medium transition-colors ${
+                        activeReadingTab === tab.key
+                          ? 'text-primary border-b-2 border-primary'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      disabled={isLoadingReading}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="flex flex-wrap gap-3">
+                  {['general', 'career', 'love', 'wealth', 'health'].map((type) => (
+                    <Button
+                      key={type}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAiReading(type)}
+                      disabled={isLoadingReading}
+                    >
+                      {{
+                        general: '综合运势',
+                        career: '事业运势',
+                        love: '感情运势',
+                        wealth: '财富运势',
+                        health: '健康运势',
+                      }[type]}
+                    </Button>
+                  ))}
+                </div>
               </div>
 
               {isLoadingReading && (
@@ -331,6 +490,11 @@ const Bazi = () => {
                   <p className="text-foreground leading-relaxed whitespace-pre-wrap">
                     {aiReading}
                   </p>
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <p className="text-xs text-muted-foreground italic">
+                      * 以上解读仅供参考，人生决策请结合实际判断
+                    </p>
+                  </div>
                 </div>
               )}
             </Card>
@@ -341,6 +505,8 @@ const Bazi = () => {
                 setResult(null);
                 setRecordId("");
                 setAiReading("");
+                setShowProfessional(false);
+                setActiveReadingTab("basic");
               }}
               className="w-full"
             >

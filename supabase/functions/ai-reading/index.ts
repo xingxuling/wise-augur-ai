@@ -60,27 +60,94 @@ serve(async (req) => {
       health: '健康运势',
       wealth: '财富运势',
       general: '综合运势',
+      basic: '基础解读',
+      professional: '专业解读',
+      scenario: '场景建议'
     };
 
-    const systemPrompt = `你是一位精通中国传统命理学的AI命理师，擅长八字分析。请基于用户的八字信息，提供专业、准确且富有洞察力的命理解读。
+    const systemPrompt = `你是一位精通《渊海子平》《三命通会》《神峰通考》等古籍的命理学专家，专注于八字深度解读。
 
-重要提示：
-1. 所有解读内容仅供参考，不应被视为绝对真理
-2. 保持专业、客观、积极的语气
-3. 避免使用封建迷信的表述
-4. 提供建设性的人生建议
-5. 解读应在150-300字之间，简洁明了`;
+核心原则：
+1. 基于传统命理体系进行专业分析（格局、用神、十神配置等）
+2. 禁用封建迷信表述（如"克妻/克夫"改为"家庭关系需注重沟通调和"）
+3. 结合古籍依据，但避免绝对化表述（禁用"必定/绝对/一定"）
+4. 提供建设性建议，注重实际应用价值
+5. 标注"仅供参考，人生决策请结合实际判断"
 
-    const userPrompt = `八字信息：
-年柱：${baziInfo.bazi.year}
-月柱：${baziInfo.bazi.month}
-日柱：${baziInfo.bazi.day}
-时柱：${baziInfo.bazi.hour}
+专业维度要求：
+- 格局判断：识别12种主流格局，标注格局成败
+- 用神选取：结合月令、四柱组合判断扶抑用神/调候用神
+- 十神组合：分析十神互动逻辑，避免孤立解读
+- 场景适配：针对事业、感情、健康提供命理适配建议`;
+
+    let userPrompt = '';
+    
+    if (readingType === 'basic') {
+      userPrompt = `【基础解读】
+八字四柱：
+年柱：${baziInfo.bazi.year}（${baziInfo.shishenAnalysis?.year?.gan || ''}）
+月柱：${baziInfo.bazi.month}（${baziInfo.shishenAnalysis?.month?.gan || ''}）
+日柱：${baziInfo.bazi.day}（日主）
+时柱：${baziInfo.bazi.hour}（${baziInfo.shishenAnalysis?.hour?.gan || ''}）
 
 五行分析：${JSON.stringify(baziInfo.wuxingAnalysis)}
-${baziInfo.lackingWuxing.length > 0 ? `缺少五行：${baziInfo.lackingWuxing.join('、')}` : '五行齐全'}
+${baziInfo.lackingWuxing?.length > 0 ? `缺少五行：${baziInfo.lackingWuxing.join('、')}` : '五行齐全'}
+日主强弱：${baziInfo.dayMasterStrength || '待判断'}
 
-请解读其${readingTypeMap[readingType] || '综合运势'}。`;
+真太阳时修正说明：${baziInfo.trueSolarTime?.note || '未修正'}
+
+请提供基础层解读（200-300字）：
+1. 四柱基本含义
+2. 五行旺衰特点
+3. 日主强弱说明
+4. 真太阳时修正的影响`;
+    } else if (readingType === 'professional') {
+      userPrompt = `【专业解读】
+八字四柱：
+年柱：${baziInfo.bazi.year}（${baziInfo.shishenAnalysis?.year?.gan || ''}）
+月柱：${baziInfo.bazi.month}（${baziInfo.shishenAnalysis?.month?.gan || ''}）
+日柱：${baziInfo.bazi.day}（日主）
+时柱：${baziInfo.bazi.hour}（${baziInfo.shishenAnalysis?.hour?.gan || ''}）
+
+格局：${baziInfo.pattern?.pattern || '待判断'}
+用神：${baziInfo.yongshen?.yongshen || '待判断'}
+日主强弱：${baziInfo.dayMasterStrength || '待判断'}
+
+请提供专业层解读（300-500字），包含：
+1. 格局判断：分析格局成败，引用古籍依据（如《神峰通考》相关论述）
+2. 用神选取：说明用神选取逻辑（扶抑/调候），并给出使用建议
+3. 十神组合：分析四柱十神互动关系，指出关键配置
+4. 大运流年：说明当前大运走向，提示流年需注意的方面`;
+    } else if (readingType === 'scenario') {
+      userPrompt = `【场景建议】
+八字四柱：
+年柱：${baziInfo.bazi.year}（${baziInfo.shishenAnalysis?.year?.gan || ''}）
+月柱：${baziInfo.bazi.month}（${baziInfo.shishenAnalysis?.month?.gan || ''}）
+日柱：${baziInfo.bazi.day}（日主）
+时柱：${baziInfo.bazi.hour}（${baziInfo.shishenAnalysis?.hour?.gan || ''}）
+
+格局：${baziInfo.pattern?.pattern || '待判断'}
+用神：${baziInfo.yongshen?.yongshen || '待判断'}
+
+请针对事业、感情、健康三大场景提供命理适配建议（250-400字）：
+1. 事业：适合的行业类型、职业发展方向、需注意的职场问题
+2. 感情：情感特质、相处模式、关系经营建议
+3. 健康：需关注的健康方面、养生建议`;
+    } else {
+      // 原有的单项解读
+      userPrompt = `【${readingTypeMap[readingType]}专项解读】
+八字四柱：
+年柱：${baziInfo.bazi.year}（${baziInfo.shishenAnalysis?.year?.gan || ''}）
+月柱：${baziInfo.bazi.month}（${baziInfo.shishenAnalysis?.month?.gan || ''}）
+日柱：${baziInfo.bazi.day}（日主）
+时柱：${baziInfo.bazi.hour}（${baziInfo.shishenAnalysis?.hour?.gan || ''}）
+
+五行分析：${JSON.stringify(baziInfo.wuxingAnalysis)}
+格局：${baziInfo.pattern?.pattern || '待判断'}
+用神：${baziInfo.yongshen?.yongshen || '待判断'}
+
+请针对${readingTypeMap[readingType]}进行专业解读（200-300字），结合格局、用神、十神配置分析。`;
+    }
 
     // 调用Lovable AI
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

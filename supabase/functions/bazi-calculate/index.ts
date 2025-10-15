@@ -10,6 +10,21 @@ const corsHeaders = {
 const TIANGAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
 const DIZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
 const WUXING = ['木', '木', '火', '火', '土', '土', '金', '金', '水', '水'];
+const DIZHI_WUXING = ['水', '土', '木', '木', '土', '火', '火', '土', '金', '金', '土', '水'];
+
+// 十神
+const SHISHEN = ['比肩', '劫财', '食神', '伤官', '偏财', '正财', '七杀', '正官', '偏印', '正印'];
+
+// 地域经纬度（用于真太阳时修正）
+const CITY_LONGITUDE: Record<string, number> = {
+  '北京': 116.4, '上海': 121.5, '广州': 113.3, '深圳': 114.1,
+  '成都': 104.1, '杭州': 120.2, '重庆': 106.5, '西安': 108.9
+};
+
+// 计算真太阳时修正（分钟）
+function getTrueSolarTimeCorrection(longitude: number, standardLongitude = 120): number {
+  return Math.round((longitude - standardLongitude) * 4);
+}
 
 // 计算年柱
 function getYearGanZhi(year: number) {
@@ -40,13 +55,89 @@ function getDayGanZhi(year: number, month: number, day: number) {
 }
 
 // 计算时柱
-function getHourGanZhi(dayGan: string, hour: number) {
+function getHourGanZhi(dayGan: string, hour: number, minute: number) {
   const dayGanIndex = TIANGAN.indexOf(dayGan);
-  const hourZhiIndex = Math.floor((hour + 1) / 2) % 12;
+  const totalMinutes = hour * 60 + minute;
+  const hourZhiIndex = Math.floor((totalMinutes + 60) / 120) % 12;
   const hourGanBase = (dayGanIndex % 5) * 2;
   const hourGanIndex = (hourGanBase + hourZhiIndex) % 10;
   
   return TIANGAN[hourGanIndex] + DIZHI[hourZhiIndex];
+}
+
+// 计算十神
+function getShishen(dayGan: string, targetGan: string): string {
+  const dayIndex = TIANGAN.indexOf(dayGan);
+  const targetIndex = TIANGAN.indexOf(targetGan);
+  const diff = (targetIndex - dayIndex + 10) % 10;
+  return SHISHEN[diff];
+}
+
+// 分析日主强弱
+function analyzeDayMasterStrength(bazi: { year: string; month: string; day: string; hour: string }, birthMonth: number): string {
+  const dayGan = bazi.day[0];
+  const dayWuxing = WUXING[TIANGAN.indexOf(dayGan)];
+  
+  // 简化判断：根据月令和五行数量
+  const monthZhi = bazi.month[1];
+  const monthZhiWuxing = DIZHI_WUXING[DIZHI.indexOf(monthZhi)];
+  
+  const isBornInSeason = dayWuxing === monthZhiWuxing;
+  
+  return isBornInSeason ? '日主较旺' : '日主较弱';
+}
+
+// 判断格局（简化版）
+function analyzePattern(bazi: { year: string; month: string; day: string; hour: string }): { pattern: string; description: string } {
+  const dayGan = bazi.day[0];
+  const monthGan = bazi.month[0];
+  const yearGan = bazi.year[0];
+  const hourGan = bazi.hour[0];
+  
+  const monthShishen = getShishen(dayGan, monthGan);
+  
+  const patterns: Record<string, string> = {
+    '正官': '正官格：为人正直，适合从事稳定职业',
+    '七杀': '七杀格：性格刚毅，需注意处理压力',
+    '正财': '正财格：财运稳健，理财观念强',
+    '偏财': '偏财格：善于把握机会，财运多变',
+    '食神': '食神格：性格温和，有艺术天赋',
+    '伤官': '伤官格：思维活跃，需注意沟通方式',
+    '正印': '正印格：学习能力强，适合学术研究',
+    '偏印': '偏印格：思维独特，多才多艺'
+  };
+  
+  return {
+    pattern: monthShishen,
+    description: patterns[monthShishen] || '命格特殊，需综合分析'
+  };
+}
+
+// 判断用神（简化版）
+function analyzeYongshen(wuxingAnalysis: Record<string, number>, birthMonth: number): { yongshen: string; description: string } {
+  // 找出最弱的五行作为用神（简化逻辑）
+  let minWuxing = '木';
+  let minCount = wuxingAnalysis['木'];
+  
+  for (const [wuxing, count] of Object.entries(wuxingAnalysis)) {
+    if (count < minCount) {
+      minCount = count;
+      minWuxing = wuxing;
+    }
+  }
+  
+  const descriptions: Record<string, string> = {
+    '木': '用神为木，建议多接触绿色、木质物品，有利于运势平衡',
+    '火': '用神为火，建议多接触红色系事物，注意保持热情积极',
+    '土': '用神为土，建议多接触黄色、土系物品，增强稳定性',
+    '金': '用神为金，建议多接触白色、金属物品，提升决断力',
+    '水': '用神为水，建议多接触黑色、蓝色事物，增强灵活性'
+  };
+  
+  return {
+    yongshen: minWuxing,
+    description: descriptions[minWuxing]
+  };
 }
 
 // 分析五行
@@ -92,7 +183,7 @@ serve(async (req) => {
       throw new Error('用户未登录');
     }
 
-    const { birthYear, birthMonth, birthDay, birthHour, gender } = await req.json();
+    const { birthYear, birthMonth, birthDay, birthHour, birthMinute = 0, gender, city = '北京' } = await req.json();
 
     // 输入验证
     if (!birthYear || !birthMonth || !birthDay || birthHour === undefined) {
@@ -115,11 +206,18 @@ serve(async (req) => {
       throw new Error('时辰无效');
     }
 
+    // 真太阳时修正
+    const cityLongitude = CITY_LONGITUDE[city] || 116.4;
+    const trueSolarCorrection = getTrueSolarTimeCorrection(cityLongitude);
+    const correctedMinutes = birthHour * 60 + birthMinute + trueSolarCorrection;
+    const correctedHour = Math.floor(correctedMinutes / 60) % 24;
+    const correctedMinute = correctedMinutes % 60;
+
     // 计算八字
     const yearGanZhi = getYearGanZhi(birthYear);
     const monthGanZhi = getMonthGanZhi(birthYear, birthMonth);
     const dayGanZhi = getDayGanZhi(birthYear, birthMonth, birthDay);
-    const hourGanZhi = getHourGanZhi(dayGanZhi[0], birthHour);
+    const hourGanZhi = getHourGanZhi(dayGanZhi[0], correctedHour, correctedMinute);
 
     const bazi = {
       year: yearGanZhi,
@@ -136,15 +234,46 @@ serve(async (req) => {
       .filter(([, count]) => count === 0)
       .map(([element]) => element);
 
+    // 十神分析
+    const dayGan = bazi.day[0];
+    const shishenAnalysis = {
+      year: { gan: getShishen(dayGan, bazi.year[0]), zhi: '' },
+      month: { gan: getShishen(dayGan, bazi.month[0]), zhi: '' },
+      day: { gan: '日主', zhi: '' },
+      hour: { gan: getShishen(dayGan, bazi.hour[0]), zhi: '' }
+    };
+
+    // 日主强弱
+    const dayMasterStrength = analyzeDayMasterStrength(bazi, birthMonth);
+
+    // 格局判断
+    const pattern = analyzePattern(bazi);
+
+    // 用神分析
+    const yongshen = analyzeYongshen(wuxingAnalysis, birthMonth);
+
     const result = {
       bazi,
       wuxingAnalysis,
       lackingWuxing,
+      shishenAnalysis,
+      dayMasterStrength,
+      pattern,
+      yongshen,
+      trueSolarTime: {
+        original: { hour: birthHour, minute: birthMinute },
+        corrected: { hour: correctedHour, minute: correctedMinute },
+        correction: trueSolarCorrection,
+        city: city,
+        note: `根据${city}地理位置，真太阳时修正约${trueSolarCorrection}分钟`
+      },
       birthInfo: {
         year: birthYear,
         month: birthMonth,
         day: birthDay,
         hour: birthHour,
+        minute: birthMinute,
+        city: city
       },
     };
 
