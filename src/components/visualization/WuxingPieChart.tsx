@@ -14,6 +14,18 @@ interface WuxingPieChartProps {
 }
 
 export const WuxingPieChart = ({ baziData, onElementClick }: WuxingPieChartProps) => {
+  // 验证数据结构
+  if (!baziData || !baziData.year || !baziData.month || !baziData.day || !baziData.hour) {
+    return (
+      <Card className="p-6 bg-card/80 backdrop-blur-md border-primary/20">
+        <h3 className="text-lg font-semibold mb-4">五行分布环形图</h3>
+        <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+          暂无数据，请先计算八字
+        </div>
+      </Card>
+    );
+  }
+
   // 计算五行分布
   const calculateWuxing = () => {
     const wuxingCount = { 金: 0, 木: 0, 水: 0, 火: 0, 土: 0 };
@@ -26,6 +38,12 @@ export const WuxingPieChart = ({ baziData, onElementClick }: WuxingPieChartProps
 
     // 统计八字中的五行
     const { year, month, day, hour } = baziData;
+    
+    // 验证各柱数据完整性
+    if (!year?.stem || !year?.branch || !month?.stem || !month?.branch ||
+        !day?.stem || !day?.branch || !hour?.stem || !hour?.branch) {
+      return [];
+    }
     [year.stem, year.branch, month.stem, month.branch, 
      day.stem, day.branch, hour.stem, hour.branch].forEach(char => {
       const element = wuxingMap[char];

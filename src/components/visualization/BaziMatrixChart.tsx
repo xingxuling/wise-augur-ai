@@ -15,6 +15,18 @@ interface BaziMatrixChartProps {
 export const BaziMatrixChart = ({ baziData }: BaziMatrixChartProps) => {
   const [selectedPillar, setSelectedPillar] = useState<any>(null);
 
+  // 验证数据结构
+  if (!baziData || !baziData.year || !baziData.month || !baziData.day || !baziData.hour) {
+    return (
+      <Card className="p-6 bg-card/80 backdrop-blur-md border-primary/20">
+        <h3 className="text-lg font-semibold mb-4">八字干支矩阵图</h3>
+        <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+          暂无数据，请先计算八字
+        </div>
+      </Card>
+    );
+  }
+
   const wuxingMap: Record<string, string> = {
     '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土', '己': '土',
     '庚': '金', '辛': '金', '壬': '水', '癸': '水',
@@ -30,14 +42,17 @@ export const BaziMatrixChart = ({ baziData }: BaziMatrixChartProps) => {
     '土': 'bg-yellow-200 border-yellow-400'
   };
 
+  // 验证各柱数据完整性
   const pillars = [
     { label: '年柱', data: baziData.year, meaning: '祖辈运势、童年环境' },
     { label: '月柱', data: baziData.month, meaning: '父母兄弟、青年时期' },
     { label: '日柱', data: baziData.day, meaning: '自身配偶、中年运势' },
     { label: '时柱', data: baziData.hour, meaning: '子女晚年、事业成就' }
-  ];
+  ].filter(pillar => pillar.data?.stem && pillar.data?.branch);
 
   const handlePillarClick = (pillar: any) => {
+    if (!pillar?.data?.stem || !pillar?.data?.branch) return;
+    
     const stemElement = wuxingMap[pillar.data.stem];
     const branchElement = wuxingMap[pillar.data.branch];
     

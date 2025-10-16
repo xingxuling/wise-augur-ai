@@ -7,10 +7,24 @@ interface ShishenRadarChartProps {
 }
 
 export const ShishenRadarChart = ({ baziData, onShishenHover }: ShishenRadarChartProps) => {
+  // 验证数据结构
+  if (!baziData || !baziData.year || !baziData.month || !baziData.day || !baziData.hour) {
+    return (
+      <Card className="p-6 bg-card/80 backdrop-blur-md border-primary/20">
+        <h3 className="text-lg font-semibold mb-4">十神关系雷达图</h3>
+        <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+          暂无数据，请先计算八字
+        </div>
+      </Card>
+    );
+  }
+
   // 计算十神强度
   const calculateShishen = () => {
     // 简化计算：基于天干关系
-    const dayGan = baziData.day.stem;
+    const dayGan = baziData.day?.stem;
+    if (!dayGan) return [];
+
     const shishenData = [
       { name: '比肩', value: 0, description: '兄弟朋友，竞争对手' },
       { name: '劫财', value: 0, description: '合作伙伴，破财风险' },
@@ -24,8 +38,8 @@ export const ShishenRadarChart = ({ baziData, onShishenHover }: ShishenRadarChar
       { name: '偏印', value: 0, description: '特殊技能，偏门知识' }
     ];
 
-    // 统计十神出现
-    const gans = [baziData.year.stem, baziData.month.stem, baziData.hour.stem];
+    // 统计十神出现 - 使用可选链和过滤空值
+    const gans = [baziData.year?.stem, baziData.month?.stem, baziData.hour?.stem].filter(Boolean);
     gans.forEach(gan => {
       if (gan === dayGan) {
         shishenData[0].value += 3; // 比肩

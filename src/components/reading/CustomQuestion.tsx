@@ -65,7 +65,7 @@ export const CustomQuestion = ({ baziRecordId, baziData }: CustomQuestionProps) 
           user_id: user.id,
           bazi_record_id: baziRecordId,
           question: question.trim(),
-          status: 'processing',
+          status: 'pending',
         })
         .select()
         .single();
