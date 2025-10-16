@@ -220,7 +220,7 @@ ${patternInfo}
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        max_completion_tokens: 500,
+        max_completion_tokens: 2000,
       }),
     });
 

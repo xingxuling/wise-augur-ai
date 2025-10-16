@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -12,6 +12,10 @@ import { REGIONS, getRegionByValue } from "@/lib/regions";
 import { CalendarType, formatDate, correctDate, isValidSolarDate, isValidLunarDate, solarToLunar, lunarToSolar, LUNAR_MONTHS, LUNAR_DAYS, lunarMonthNameToNumber, lunarDayNameToNumber } from "@/lib/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BaziTestCase } from "@/components/BaziTestCase";
+import { EnhancedReadingDisplay } from "@/components/reading/EnhancedReadingDisplay";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { MembershipBadge } from "@/components/MembershipBadge";
+import { useMembership } from "@/hooks/useMembership";
 
 const baziInputSchema = z.object({
   year: z.number().min(1900).max(2100),
@@ -53,6 +57,8 @@ const Bazi = () => {
   const [isLoadingReading, setIsLoadingReading] = useState(false);
   const [showProfessional, setShowProfessional] = useState(false);
   const [activeReadingTab, setActiveReadingTab] = useState<string>("basic");
+  const readingContentRef = useRef<HTMLDivElement>(null);
+  const { membership, hasFeature } = useMembership();
 
   useEffect(() => {
     // 检查用户是否已登录
@@ -618,7 +624,7 @@ const Bazi = () => {
               <h2 className="text-2xl font-bold text-gradient mb-6">AI命理解读</h2>
               
               <div className="mb-6">
-                <div className="flex gap-2 mb-4 border-b border-border">
+                <div className="flex gap-2 mb-4 border-b border-border overflow-x-auto">
                   {[
                     { key: 'basic', label: '基础解读' },
                     { key: 'professional', label: '专业解读' },
@@ -630,7 +636,7 @@ const Bazi = () => {
                         setActiveReadingTab(tab.key);
                         handleAiReading(tab.key);
                       }}
-                      className={`px-4 py-2 font-medium transition-colors ${
+                      className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
                         activeReadingTab === tab.key
                           ? 'text-primary border-b-2 border-primary'
                           : 'text-muted-foreground hover:text-foreground'
@@ -666,19 +672,18 @@ const Bazi = () => {
               {isLoadingReading && (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <p className="ml-3 text-muted-foreground">AI正在深度分析您的八字...</p>
                 </div>
               )}
 
               {aiReading && !isLoadingReading && (
-                <div className="bg-background/50 rounded-lg p-6 border border-primary/20">
-                  <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-                    {aiReading}
-                  </p>
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <p className="text-xs text-muted-foreground italic">
-                      * 以上解读仅供参考，人生决策请结合实际判断
-                    </p>
-                  </div>
+                <div ref={readingContentRef}>
+                  <EnhancedReadingDisplay
+                    content={aiReading}
+                    baziRecordId={recordId}
+                    readingType={activeReadingTab}
+                    baziData={result}
+                  />
                 </div>
               )}
             </Card>
