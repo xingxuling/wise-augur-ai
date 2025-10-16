@@ -129,43 +129,87 @@ function getYearGanZhi(date: Date): string {
 }
 
 // 获取节气月份（基于节气而非公历）
-function getSolarTermMonth(date: Date): { index: number; name: string } | null {
+function getSolarTermMonth(date: Date): { index: number; name: string; termName: string } | null {
   const year = date.getFullYear();
-  const terms = SOLAR_TERMS_DATA[year];
-  if (!terms) return null;
-  
   const dateTime = date.getTime();
   
-  // 节气月份对应（从立春开始）
-  const monthNames = ['寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子', '丑'];
+  // 节气月份对应（从寅月/立春开始，按照节气月令）
+  // 寅月（立春-惊蛰）、卯月（惊蛰-清明）、辰月（清明-立夏）...
+  const monthInfo = [
+    { zhi: '寅', term: '立春', termIndex: 0 },
+    { zhi: '卯', term: '惊蛰', termIndex: 2 },
+    { zhi: '辰', term: '清明', termIndex: 4 },
+    { zhi: '巳', term: '立夏', termIndex: 6 },
+    { zhi: '午', term: '芒种', termIndex: 8 },
+    { zhi: '未', term: '小暑', termIndex: 10 },
+    { zhi: '申', term: '立秋', termIndex: 12 },
+    { zhi: '酉', term: '白露', termIndex: 14 },
+    { zhi: '戌', term: '寒露', termIndex: 16 },
+    { zhi: '亥', term: '立冬', termIndex: 18 },
+    { zhi: '子', term: '大雪', termIndex: 20 },
+    { zhi: '丑', term: '小寒', termIndex: 22 }
+  ];
   
-  // 找当前时间在哪两个节气之间（每两个节气为一个月）
-  for (let i = 0; i < 24; i += 2) {
-    const currentTermIndex = i;
-    const nextTermIndex = (i + 2) % 24;
+  // 尝试当前年份和前一年的节气数据
+  const currentYearTerms = SOLAR_TERMS_DATA[year];
+  const prevYearTerms = SOLAR_TERMS_DATA[year - 1];
+  
+  // 如果当前年份没有数据，使用近似算法
+  if (!currentYearTerms) {
+    const month = date.getMonth() + 1;
+    const approximateIndex = (month + 1) % 12;
+    return { 
+      index: approximateIndex, 
+      name: monthInfo[approximateIndex].zhi,
+      termName: monthInfo[approximateIndex].term
+    };
+  }
+  
+  // 遍历12个节气月份
+  for (let i = 0; i < 12; i++) {
+    const currentMonthInfo = monthInfo[i];
+    const nextMonthInfo = monthInfo[(i + 1) % 12];
     
-    let currentTerm = terms[currentTermIndex];
-    let nextTerm = terms[nextTermIndex];
+    // 获取当前月的起始节气
+    let currentTerm = currentYearTerms[currentMonthInfo.termIndex];
+    let currentTermDate: Date;
     
-    // 处理跨年情况
-    const currentDate = new Date(year, currentTerm.month - 1, currentTerm.day, currentTerm.hour, currentTerm.minute);
-    let nextDate: Date;
-    
-    if (nextTermIndex < currentTermIndex) {
-      // 下一个节气在明年
-      const nextYearTerms = SOLAR_TERMS_DATA[year + 1];
-      if (nextYearTerms) {
-        nextTerm = nextYearTerms[nextTermIndex];
-        nextDate = new Date(year + 1, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
-      } else {
-        nextDate = new Date(year + 1, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
-      }
+    // 处理跨年情况（小寒、大寒在1月，但属于前一年的冬季月份）
+    if (currentTerm.month === 1 && prevYearTerms) {
+      // 1月的节气属于前一年
+      currentTerm = prevYearTerms[currentMonthInfo.termIndex];
+      currentTermDate = new Date(year - 1, currentTerm.month - 1, currentTerm.day, currentTerm.hour, currentTerm.minute);
     } else {
-      nextDate = new Date(year, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
+      currentTermDate = new Date(year, currentTerm.month - 1, currentTerm.day, currentTerm.hour, currentTerm.minute);
     }
     
-    if (dateTime >= currentDate.getTime() && dateTime < nextDate.getTime()) {
-      return { index: i / 2, name: monthNames[i / 2] };
+    // 获取下一月的起始节气
+    let nextTerm = currentYearTerms[nextMonthInfo.termIndex];
+    let nextTermDate: Date;
+    
+    if (nextTerm.month === 1) {
+      // 下一个节气在明年1月
+      const nextYearTerms = SOLAR_TERMS_DATA[year + 1];
+      if (nextYearTerms) {
+        nextTerm = nextYearTerms[nextMonthInfo.termIndex];
+        nextTermDate = new Date(year + 1, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
+      } else {
+        nextTermDate = new Date(year + 1, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
+      }
+    } else if (nextTerm.month < currentTerm.month && nextTerm.month > 1) {
+      // 跨年到次年
+      nextTermDate = new Date(year + 1, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
+    } else {
+      nextTermDate = new Date(year, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
+    }
+    
+    // 判断当前时间是否在这个月份区间内
+    if (dateTime >= currentTermDate.getTime() && dateTime < nextTermDate.getTime()) {
+      return { 
+        index: i, 
+        name: currentMonthInfo.zhi,
+        termName: currentMonthInfo.term
+      };
     }
   }
   
@@ -181,17 +225,24 @@ function getMonthGanZhi(date: Date): string {
   if (!monthInfo) {
     // 无节气数据时使用简化算法
     const month = date.getMonth() + 1;
-    const monthGanBase = (yearGan % 5) * 2;
+    const monthGanBase = ((yearGan % 5) * 2 + 2) % 10;
     const ganIndex = (monthGanBase + month - 1) % 10;
     const zhiIndex = (month + 1) % 12;
     return TIANGAN[ganIndex] + DIZHI[zhiIndex];
   }
   
-  const monthZhiIndex = monthInfo.index;
-  const monthGanBase = (yearGan % 5) * 2;
-  const ganIndex = (monthGanBase + monthZhiIndex) % 10;
+  // 使用节气月份的地支
+  const zhiName = monthInfo.name;
   
-  return TIANGAN[ganIndex] + DIZHI[monthZhiIndex];
+  // 月干起法口诀：甲己之年丙作首（yearGan%5决定正月寅月的天干）
+  // 甲己(0)→丙(2)、乙庚(1)→戊(4)、丙辛(2)→庚(6)、丁壬(3)→壬(8)、戊癸(4)→甲(0)
+  // 公式：寅月天干 = ((yearGan % 5) * 2 + 2) % 10
+  const monthGanBase = ((yearGan % 5) * 2 + 2) % 10;
+  
+  // monthInfo.index是从寅月开始的索引（寅=0, 卯=1, ...）
+  const ganIndex = (monthGanBase + monthInfo.index) % 10;
+  
+  return TIANGAN[ganIndex] + zhiName;
 }
 
 // 计算日柱（蔡勒公式改进版）
@@ -446,6 +497,12 @@ serve(async (req) => {
       hour: hourGanZhi,
     };
 
+    // 获取节气月份信息（用于说明）
+    const monthInfo = getSolarTermMonth(correctedDate);
+    
+    // 获取八字年份（基于立春）
+    const baziYear = getBaziYear(correctedDate);
+
     // 五行分析
     const wuxingAnalysis = analyzeWuxing(bazi);
     
@@ -480,6 +537,16 @@ serve(async (req) => {
       dayMasterStrength,
       pattern,
       yongshen,
+      solarTermInfo: monthInfo ? {
+        month: monthInfo.name + '月',
+        term: monthInfo.termName,
+        description: `本月柱基于节气【${monthInfo.termName}】确定，地支为${monthInfo.name}`
+      } : undefined,
+      lichunInfo: {
+        baziYear: baziYear,
+        actualYear: correctedYear,
+        note: baziYear !== correctedYear ? `根据立春节气，八字年份为${baziYear}年（农历纪年）` : '八字年份与公历年份一致'
+      },
       trueSolarTime: {
         original: { 
           year: birthYear, 
@@ -499,7 +566,7 @@ serve(async (req) => {
         region: region,
         note: `基于${region}地理位置（东经${regionLongitude.toFixed(2)}°），真太阳时修正${trueSolarCorrection}分钟`
       },
-      calculation_note: '本排盘基于万年历节气数据，年柱以立春为界，月柱以节气为界，确保准确性',
+      calculation_note: '本排盘严格基于万年历节气数据：年柱以立春为界，月柱以节气为界（寅月始于立春、卯月始于惊蛰...），日柱使用精确算法，时柱按真太阳时计算',
     };
 
     // 保存到数据库

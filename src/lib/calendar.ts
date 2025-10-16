@@ -209,37 +209,66 @@ export function isValidLunarDate(year: number, month: number, day: number, isLea
 }
 
 /**
- * 公历转农历（简化版）
+ * 公历转农历（使用lunar-javascript库）
  */
 export function solarToLunar(year: number, month: number, day: number): DateInfo {
-  // 简化实现：直接返回农历表示
-  // 生产环境应使用专业库如 lunar-javascript
-  
-  const displayText = `农历${year}年${LUNAR_MONTHS[month - 1] || ''}${LUNAR_DAYS[day - 1] || ''}`;
-  
-  return {
-    year,
-    month,
-    day,
-    type: 'lunar',
-    displayText
-  };
+  try {
+    // 动态导入lunar-javascript
+    const { Lunar, Solar } = require('lunar-javascript');
+    const solar = Solar.fromYmd(year, month, day);
+    const lunar = solar.getLunar();
+    
+    const displayText = `农历${lunar.getYearInChinese()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
+    
+    return {
+      year: lunar.getYear(),
+      month: lunar.getMonth(),
+      day: lunar.getDay(),
+      type: 'lunar',
+      displayText
+    };
+  } catch (error) {
+    console.error('公历转农历失败:', error);
+    // 降级处理
+    const displayText = `农历${year}年${LUNAR_MONTHS[month - 1] || ''}${LUNAR_DAYS[day - 1] || ''}`;
+    return {
+      year,
+      month,
+      day,
+      type: 'lunar',
+      displayText
+    };
+  }
 }
 
 /**
- * 农历转公历（简化版）
+ * 农历转公历（使用lunar-javascript库）
  */
 export function lunarToSolar(year: number, month: number, day: number, isLeap: boolean = false): DateInfo {
-  // 简化实现
-  // 生产环境应使用专业库
-  
-  return {
-    year,
-    month,
-    day,
-    type: 'solar',
-    displayText: `${year}年${month}月${day}日`
-  };
+  try {
+    // 动态导入lunar-javascript
+    const { Lunar } = require('lunar-javascript');
+    const lunar = Lunar.fromYmd(year, month, day);
+    const solar = lunar.getSolar();
+    
+    return {
+      year: solar.getYear(),
+      month: solar.getMonth(),
+      day: solar.getDay(),
+      type: 'solar',
+      displayText: `${solar.getYear()}年${solar.getMonth()}月${solar.getDay()}日`
+    };
+  } catch (error) {
+    console.error('农历转公历失败:', error);
+    // 降级处理：返回近似值
+    return {
+      year,
+      month: month + 1 > 12 ? 1 : month + 1,
+      day,
+      type: 'solar',
+      displayText: `${year}年${month}月${day}日（近似）`
+    };
+  }
 }
 
 /**

@@ -136,7 +136,7 @@ const Bazi = () => {
           birthDay: solarDay,
           birthHour: parseInt(hour),
           birthMinute: parseInt(minute),
-          city: selectedRegion.label,
+          region: region, // 使用region代码而不是label
         },
       });
 
