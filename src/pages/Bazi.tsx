@@ -15,8 +15,10 @@ import { EnhancedReadingDisplay } from "@/components/reading/EnhancedReadingDisp
 import { ReadingHistory } from "@/components/reading/ReadingHistory";
 import { DayunChart } from "@/components/reading/DayunChart";
 import { LiunianAnalysis } from "@/components/reading/LiunianAnalysis";
+import { CustomQuestion } from "@/components/reading/CustomQuestion";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { MembershipBadge } from "@/components/MembershipBadge";
+import { AdminBadge } from "@/components/AdminBadge";
 import { useMembership } from "@/hooks/useMembership";
 import { useAIUsage } from "@/hooks/useAIUsage";
 
@@ -261,6 +263,7 @@ const Bazi = () => {
                 setRecordId(record.id);
                 setGender(record.gender as "male" | "female");
               }} />}
+              <AdminBadge />
               <MembershipBadge />
               <LanguageSelector />
             </div>
@@ -727,6 +730,12 @@ const Bazi = () => {
             <LiunianAnalysis
               baziRecordId={recordId}
               birthYear={parseInt(year)}
+              baziData={result}
+            />
+
+            {/* 自定义问题咨询 */}
+            <CustomQuestion
+              baziRecordId={recordId}
               baziData={result}
             />
 
