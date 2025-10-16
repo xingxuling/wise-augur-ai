@@ -21,6 +21,7 @@ import { BookmarkManager } from "@/components/reading/BookmarkManager";
 import { WuxingPieChart } from "@/components/visualization/WuxingPieChart";
 import { ShishenRadarChart } from "@/components/visualization/ShishenRadarChart";
 import { BaziMatrixChart } from "@/components/visualization/BaziMatrixChart";
+import { VisualizationExport } from "@/components/visualization/VisualizationExport";
 import { CustomReadingScenes } from "@/components/reading/CustomReadingScenes";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { MembershipBadge } from "@/components/MembershipBadge";
@@ -83,6 +84,9 @@ const Bazi = () => {
     open: false, shishen: '', info: '' 
   });
   const readingContentRef = useRef<HTMLDivElement>(null);
+  const wuxingChartRef = useRef<HTMLDivElement>(null);
+  const shishenChartRef = useRef<HTMLDivElement>(null);
+  const baziMatrixRef = useRef<HTMLDivElement>(null);
   const { membership, hasFeature, canUseAI } = useMembership();
   const { usageCount, recordUsage } = useAIUsage();
 
@@ -711,11 +715,10 @@ const Bazi = () => {
                     size="sm"
                     onClick={() => {
                       setShowVisualization(!showVisualization);
-                      setAiReading("");
                     }}
                   >
                     <BarChart3 className="w-4 h-4 mr-2" />
-                    数据可视化
+                    {showVisualization ? '隐藏图表' : '数据可视化'}
                   </Button>
                   {['general', 'career', 'love', 'wealth', 'health'].map((type) => (
                     <Button
@@ -758,32 +761,60 @@ const Bazi = () => {
 
               {showVisualization && !isLoadingReading && (
                 <div className="space-y-6 mt-6">
-                  <WuxingPieChart 
-                    baziData={result}
-                    onElementClick={(element) => {
-                      const descriptions: Record<string, string> = {
-                        '金': '金元素代表决断力、执行力。金旺者性格果断，适合决策岗位；金弱需注意呼吸系统健康。职场建议：适合管理、金融、法律等需要决断力的工作。',
-                        '木': '木元素代表生长力、创造力。木旺者富有活力，适合创意工作；木弱易肝胆不适。职场建议：适合教育、文化、创意设计等发展性工作。',
-                        '水': '水元素代表智慧、灵活性。水旺者思维敏捷，适合策划分析；水弱需补充水分。职场建议：适合咨询、研究、策划等智力型工作。',
-                        '火': '火元素代表热情、行动力。火旺者积极主动，适合营销公关；火弱易心血管问题。职场建议：适合销售、公关、演艺等需要表现力的工作。',
-                        '土': '土元素代表稳定、包容性。土旺者踏实可靠，适合管理岗位；土弱需注意脾胃。职场建议：适合行政、房地产、农业等稳定性工作。'
-                      };
-                      setElementDialog({ open: true, element, info: descriptions[element] || '' });
-                    }}
-                  />
-                  {membership && membership.tier !== 'free' && (
+                  {/* 可视化说明和导出 */}
+                  <div className="flex items-center justify-between gap-4">
+                    <Card className="flex-1 p-4 bg-primary/5 border-primary/20">
+                      <p className="text-sm text-muted-foreground">
+                        💡 <strong>数据可视化说明：</strong>
+                        点击图表元素查看详细解读。五行图展示命格平衡度，十神图反映性格特质和能力倾向，矩阵图呈现干支关系。
+                      </p>
+                    </Card>
+                    <VisualizationExport
+                      chartRefs={[wuxingChartRef, shishenChartRef, baziMatrixRef]}
+                      baziData={result}
+                    />
+                  </div>
+
+                  <div ref={wuxingChartRef}>
+                    <WuxingPieChart 
+                      baziData={result}
+                      onElementClick={(element) => {
+                        const descriptions: Record<string, string> = {
+                          '金': '金元素代表决断力、执行力。金旺者性格果断，适合决策岗位；金弱需注意呼吸系统健康。职场建议：适合管理、金融、法律等需要决断力的工作。',
+                          '木': '木元素代表生长力、创造力。木旺者富有活力，适合创意工作；木弱易肝胆不适。职场建议：适合教育、文化、创意设计等发展性工作。',
+                          '水': '水元素代表智慧、灵活性。水旺者思维敏捷，适合策划分析；水弱需补充水分。职场建议：适合咨询、研究、策划等智力型工作。',
+                          '火': '火元素代表热情、行动力。火旺者积极主动，适合营销公关；火弱易心血管问题。职场建议：适合销售、公关、演艺等需要表现力的工作。',
+                          '土': '土元素代表稳定、包容性。土旺者踏实可靠，适合管理岗位；土弱需注意脾胃。职场建议：适合行政、房地产、农业等稳定性工作。'
+                        };
+                        setElementDialog({ open: true, element, info: descriptions[element] || '' });
+                      }}
+                    />
+                  </div>
+                  
+                  <div ref={shishenChartRef}>
                     <ShishenRadarChart 
                       baziData={result}
                       onShishenHover={(shishen, info) => {
                         setShishenDialog({ open: true, shishen, info });
                       }}
                     />
+                  </div>
+                  
+                  <div ref={baziMatrixRef}>
+                    <BaziMatrixChart baziData={result} />
+                  </div>
+
+                  {membership && membership.tier === 'free' && (
+                    <Card className="p-4 bg-primary/10 border-primary/30">
+                      <p className="text-sm text-center text-muted-foreground">
+                        升级会员可解锁更多高级可视化功能和深度解读
+                      </p>
+                    </Card>
                   )}
-                  <BaziMatrixChart baziData={result} />
                 </div>
               )}
 
-              {aiReading && !isLoadingReading && !showVisualization && (
+              {aiReading && !isLoadingReading && (
                 <div ref={readingContentRef}>
                   <EnhancedReadingDisplay
                     content={aiReading}
@@ -799,13 +830,19 @@ const Bazi = () => {
             <DayunChart 
               baziData={result} 
               gender={gender}
-              birthYear={parseInt(year)}
+              birthYear={calendarType === 'lunar' && result ? 
+                (result as any).solarDate?.year || parseInt(year) : 
+                parseInt(year)
+              }
             />
 
             {/* 流年分析 */}
             <LiunianAnalysis
               baziRecordId={recordId}
-              birthYear={parseInt(year)}
+              birthYear={calendarType === 'lunar' && result ? 
+                (result as any).solarDate?.year || parseInt(year) : 
+                parseInt(year)
+              }
               baziData={result}
             />
 

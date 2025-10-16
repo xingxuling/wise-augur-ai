@@ -19,40 +19,87 @@ export const ShishenRadarChart = ({ baziData, onShishenHover }: ShishenRadarChar
     );
   }
 
-  // 计算十神强度
+  // 计算十神强度 - 基于真实天干关系
   const calculateShishen = () => {
-    // 简化计算：基于天干关系
     const dayGan = baziData.day?.stem;
     if (!dayGan) return [];
 
+    // 十干阴阳属性
+    const ganYinYang: Record<string, 'yang' | 'yin'> = {
+      '甲': 'yang', '乙': 'yin', '丙': 'yang', '丁': 'yin', '戊': 'yang',
+      '己': 'yin', '庚': 'yang', '辛': 'yin', '壬': 'yang', '癸': 'yin'
+    };
+
+    // 十干五行
+    const ganWuxing: Record<string, string> = {
+      '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土',
+      '己': '土', '庚': '金', '辛': '金', '壬': '水', '癸': '水'
+    };
+
+    // 五行生克关系
+    const wuxingRelation: Record<string, { sheng: string; ke: string; beisheng: string; beike: string }> = {
+      '木': { sheng: '火', ke: '土', beisheng: '水', beike: '金' },
+      '火': { sheng: '土', ke: '金', beisheng: '木', beike: '水' },
+      '土': { sheng: '金', ke: '水', beisheng: '火', beike: '木' },
+      '金': { sheng: '水', ke: '木', beisheng: '土', beike: '火' },
+      '水': { sheng: '木', ke: '火', beisheng: '金', beike: '土' }
+    };
+
+    // 计算十神关系
+    const getShishen = (gan: string): string => {
+      const dayElement = ganWuxing[dayGan];
+      const ganElement = ganWuxing[gan];
+      const relation = wuxingRelation[dayElement];
+      const isSameYinYang = ganYinYang[dayGan] === ganYinYang[gan];
+
+      if (ganElement === dayElement) {
+        return isSameYinYang ? '比肩' : '劫财';
+      } else if (ganElement === relation.sheng) {
+        return isSameYinYang ? '食神' : '伤官';
+      } else if (ganElement === relation.beike) {
+        return isSameYinYang ? '偏财' : '正财';
+      } else if (ganElement === relation.ke) {
+        return isSameYinYang ? '偏官' : '正官';
+      } else if (ganElement === relation.beisheng) {
+        return isSameYinYang ? '偏印' : '正印';
+      }
+      return '';
+    };
+
+    // 统计十神
+    const shishenCount: Record<string, number> = {
+      '比肩': 0, '劫财': 0, '食神': 0, '伤官': 0,
+      '正财': 0, '偏财': 0, '正官': 0, '偏官': 0,
+      '正印': 0, '偏印': 0
+    };
+
+    // 遍历四柱天干（不含日干）
+    [baziData.year?.stem, baziData.month?.stem, baziData.hour?.stem]
+      .filter(Boolean)
+      .forEach(gan => {
+        const shishen = getShishen(gan!);
+        if (shishen) shishenCount[shishen]++;
+      });
+
+    // 返回数据，将计数转换为强度值（0-10）
     const shishenData = [
-      { name: '比肩', value: 0, description: '兄弟朋友，竞争对手' },
-      { name: '劫财', value: 0, description: '合作伙伴，破财风险' },
-      { name: '食神', value: 0, description: '才华展现，福禄之星' },
-      { name: '伤官', value: 0, description: '创新能力，表达欲强' },
-      { name: '正财', value: 0, description: '工资收入，稳定之财' },
-      { name: '偏财', value: 0, description: '意外之财，副业收入' },
-      { name: '正官', value: 0, description: '权力地位，稳定工作' },
-      { name: '七杀', value: 0, description: '挑战压力，竞争环境' },
-      { name: '正印', value: 0, description: '学习能力，贵人相助' },
-      { name: '偏印', value: 0, description: '特殊技能，偏门知识' }
+      { name: '比肩', value: shishenCount['比肩'], description: '兄弟朋友，竞争对手，独立自主' },
+      { name: '劫财', value: shishenCount['劫财'], description: '合作伙伴，破财风险，果敢行动' },
+      { name: '食神', value: shishenCount['食神'], description: '才华展现，福禄之星，温和包容' },
+      { name: '伤官', value: shishenCount['伤官'], description: '创新能力，表达欲强，才华横溢' },
+      { name: '正财', value: shishenCount['正财'], description: '工资收入，稳定之财，勤劳务实' },
+      { name: '偏财', value: shishenCount['偏财'], description: '意外之财，副业收入，善于交际' },
+      { name: '正官', value: shishenCount['正官'], description: '权力地位，稳定工作，遵纪守法' },
+      { name: '偏官', value: shishenCount['偏官'], description: '挑战压力，竞争环境，勇于冒险' },
+      { name: '正印', value: shishenCount['正印'], description: '学习能力，贵人相助，稳重踏实' },
+      { name: '偏印', value: shishenCount['偏印'], description: '特殊技能，偏门知识，独特思维' }
     ];
 
-    // 统计十神出现 - 使用可选链和过滤空值
-    const gans = [baziData.year?.stem, baziData.month?.stem, baziData.hour?.stem].filter(Boolean);
-    gans.forEach(gan => {
-      if (gan === dayGan) {
-        shishenData[0].value += 3; // 比肩
-      } else {
-        // 简化逻辑：随机分配强度用于演示
-        const index = Math.floor(Math.random() * 10);
-        shishenData[index].value += Math.floor(Math.random() * 5) + 3;
-      }
-    });
-
+    // 将计数转换为0-10的强度值
+    const maxCount = Math.max(...Object.values(shishenCount), 1);
     return shishenData.map(item => ({
       ...item,
-      value: Math.min(item.value, 10) // 限制最大值为10
+      value: Math.round((item.value / maxCount) * 10)
     }));
   };
 
