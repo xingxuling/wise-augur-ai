@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Solar, Lunar } from "https://esm.sh/lunar-javascript@1.7.5";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,148 +18,6 @@ const SHISHEN = ['比肩', '劫财', '食神', '伤官', '偏财', '正财', '�
 
 // 农历月份名称（用于显示）
 const LUNAR_MONTHS = ['正月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '冬月', '腊月'];
-
-// 2024-2025年节气数据（基于北京时间，精确到分钟）
-// 数据来源：中国科学院紫金山天文台
-interface SolarTermTime {
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-}
-
-const SOLAR_TERMS_DATA: { [key: number]: SolarTermTime[] } = {
-  1940: [
-    { month: 2, day: 5, hour: 7, minute: 8 }, // 立春
-    { month: 2, day: 20, hour: 3, minute: 4 }, // 雨水
-    { month: 3, day: 6, hour: 1, minute: 24 }, // 惊蛰
-    { month: 3, day: 21, hour: 2, minute: 24 }, // 春分
-    { month: 4, day: 5, hour: 6, minute: 35 }, // 清明
-    { month: 4, day: 20, hour: 13, minute: 51 }, // 谷雨
-    { month: 5, day: 6, hour: 0, minute: 16 }, // 立夏
-    { month: 5, day: 21, hour: 13, minute: 23 }, // 小满
-    { month: 6, day: 6, hour: 4, minute: 44 }, // 芒种
-    { month: 6, day: 21, hour: 21, minute: 36 }, // 夏至
-    { month: 7, day: 7, hour: 15, minute: 8 }, // 小暑
-    { month: 7, day: 23, hour: 8, minute: 34 }, // 大暑
-    { month: 8, day: 8, hour: 0, minute: 51 }, // 立秋
-    { month: 8, day: 23, hour: 15, minute: 29 }, // 处暑
-    { month: 9, day: 8, hour: 3, minute: 29 }, // 白露
-    { month: 9, day: 23, hour: 12, minute: 46 }, // 秋分
-    { month: 10, day: 8, hour: 18, minute: 42 }, // 寒露
-    { month: 10, day: 23, hour: 21, minute: 39 }, // 霜降
-    { month: 11, day: 7, hour: 21, minute: 27 }, // 立冬
-    { month: 11, day: 22, hour: 18, minute: 49 }, // 小雪
-    { month: 12, day: 7, hour: 13, minute: 58 }, // 大雪
-    { month: 12, day: 22, hour: 7, minute: 55 }, // 冬至
-    { month: 1, day: 6, hour: 1, minute: 4 }, // 小寒（次年1941）
-    { month: 1, day: 20, hour: 18, minute: 34 } // 大寒（次年1941）
-  ],
-  2002: [
-    { month: 2, day: 4, hour: 14, minute: 24 }, // 立春
-    { month: 2, day: 19, hour: 1, minute: 14 }, // 雨水
-    { month: 3, day: 6, hour: 6, minute: 24 }, // 惊蛰
-    { month: 3, day: 21, hour: 7, minute: 16 }, // 春分
-    { month: 4, day: 5, hour: 10, minute: 51 }, // 清明
-    { month: 4, day: 20, hour: 18, minute: 0 }, // 谷雨
-    { month: 5, day: 6, hour: 9, minute: 5 }, // 立夏
-    { month: 5, day: 21, hour: 21, minute: 14 }, // 小满
-    { month: 6, day: 6, hour: 12, minute: 23 }, // 芒种
-    { month: 6, day: 22, hour: 5, minute: 8 }, // 夏至
-    { month: 7, day: 7, hour: 23, minute: 26 }, // 小暑
-    { month: 7, day: 23, hour: 16, minute: 3 }, // 大暑
-    { month: 8, day: 8, hour: 8, minute: 26 }, // 立秋
-    { month: 8, day: 23, hour: 23, minute: 2 }, // 处暑
-    { month: 9, day: 8, hour: 11, minute: 22 }, // 白露
-    { month: 9, day: 23, hour: 20, minute: 43 }, // 秋分
-    { month: 10, day: 9, hour: 3, minute: 3 }, // 寒露
-    { month: 10, day: 24, hour: 6, minute: 44 }, // 霜降
-    { month: 11, day: 8, hour: 6, minute: 37 }, // 立冬
-    { month: 11, day: 23, hour: 4, minute: 34 }, // 小雪
-    { month: 12, day: 8, hour: 1, minute: 8 }, // 大雪
-    { month: 12, day: 22, hour: 18, minute: 14 }, // 冬至
-    { month: 1, day: 6, hour: 9, minute: 9 }, // 小寒（次年2003）
-    { month: 1, day: 21, hour: 0, minute: 33 } // 大寒（次年2003）
-  ],
-  2003: [
-    { month: 2, day: 4, hour: 8, minute: 5 }, // 立春
-    { month: 2, day: 18, hour: 19, minute: 0 }, // 雨水
-    { month: 3, day: 6, hour: 0, minute: 23 }, // 惊蛰
-    { month: 3, day: 21, hour: 1, minute: 0 }, // 春分
-    { month: 4, day: 5, hour: 4, minute: 52 }, // 清明
-    { month: 4, day: 20, hour: 12, minute: 3 }, // 谷雨
-    { month: 5, day: 6, hour: 3, minute: 8 }, // 立夏
-    { month: 5, day: 21, hour: 15, minute: 16 }, // 小满
-    { month: 6, day: 6, hour: 6, minute: 25 }, // 芒种
-    { month: 6, day: 21, hour: 23, minute: 11 }, // 夏至
-    { month: 7, day: 7, hour: 17, minute: 30 }, // 小暑
-    { month: 7, day: 23, hour: 10, minute: 7 }, // 大暑
-    { month: 8, day: 8, hour: 2, minute: 31 }, // 立秋
-    { month: 8, day: 23, hour: 17, minute: 8 }, // 处暑
-    { month: 9, day: 8, hour: 5, minute: 27 }, // 白露
-    { month: 9, day: 23, hour: 14, minute: 47 }, // 秋分
-    { month: 10, day: 8, hour: 21, minute: 9 }, // 寒露
-    { month: 10, day: 24, hour: 0, minute: 49 }, // 霜降
-    { month: 11, day: 8, hour: 0, minute: 44 }, // 立冬
-    { month: 11, day: 22, hour: 22, minute: 44 }, // 小雪
-    { month: 12, day: 7, hour: 19, minute: 18 }, // 大雪
-    { month: 12, day: 22, hour: 12, minute: 4 }, // 冬至
-    { month: 1, day: 6, hour: 3, minute: 19 }, // 小寒（次年2004）
-    { month: 1, day: 20, hour: 18, minute: 43 } // 大寒（次年2004）
-  ],
-  2024: [
-    { month: 2, day: 4, hour: 16, minute: 27 }, // 立春
-    { month: 2, day: 19, hour: 12, minute: 13 }, // 雨水
-    { month: 3, day: 5, hour: 10, minute: 23 }, // 惊蛰
-    { month: 3, day: 20, hour: 11, minute: 6 }, // 春分
-    { month: 4, day: 4, hour: 15, minute: 2 }, // 清明
-    { month: 4, day: 19, hour: 21, minute: 59 }, // 谷雨
-    { month: 5, day: 5, hour: 8, minute: 10 }, // 立夏
-    { month: 5, day: 20, hour: 20, minute: 59 }, // 小满
-    { month: 6, day: 5, hour: 12, minute: 10 }, // 芒种
-    { month: 6, day: 21, hour: 4, minute: 51 }, // 夏至
-    { month: 7, day: 6, hour: 22, minute: 20 }, // 小暑
-    { month: 7, day: 22, hour: 15, minute: 44 }, // 大暑
-    { month: 8, day: 7, hour: 8, minute: 9 }, // 立秋
-    { month: 8, day: 22, hour: 22, minute: 55 }, // 处暑
-    { month: 9, day: 7, hour: 11, minute: 11 }, // 白露
-    { month: 9, day: 22, hour: 20, minute: 44 }, // 秋分
-    { month: 10, day: 8, hour: 2, minute: 49 }, // 寒露
-    { month: 10, day: 23, hour: 6, minute: 15 }, // 霜降
-    { month: 11, day: 7, hour: 6, minute: 20 }, // 立冬
-    { month: 11, day: 22, hour: 3, minute: 56 }, // 小雪
-    { month: 12, day: 7, hour: 0, minute: 17 }, // 大雪
-    { month: 12, day: 21, hour: 17, minute: 21 }, // 冬至
-    { month: 1, day: 5, hour: 22, minute: 49 }, // 小寒（次年）
-    { month: 1, day: 20, hour: 10, minute: 7 } // 大寒（次年）
-  ],
-  2025: [
-    { month: 2, day: 3, hour: 22, minute: 10 }, // 立春
-    { month: 2, day: 18, hour: 18, minute: 6 }, // 雨水
-    { month: 3, day: 5, hour: 16, minute: 7 }, // 惊蛰
-    { month: 3, day: 20, hour: 17, minute: 1 }, // 春分
-    { month: 4, day: 4, hour: 20, minute: 48 }, // 清明
-    { month: 4, day: 20, hour: 3, minute: 56 }, // 谷雨
-    { month: 5, day: 5, hour: 14, minute: 0 }, // 立夏
-    { month: 5, day: 21, hour: 2, minute: 55 }, // 小满
-    { month: 6, day: 5, hour: 18, minute: 10 }, // 芒种
-    { month: 6, day: 21, hour: 10, minute: 42 }, // 夏至
-    { month: 7, day: 7, hour: 4, minute: 5 }, // 小暑
-    { month: 7, day: 22, hour: 21, minute: 30 }, // 大暑
-    { month: 8, day: 7, hour: 13, minute: 53 }, // 立秋
-    { month: 8, day: 23, hour: 4, minute: 34 }, // 处暑
-    { month: 9, day: 7, hour: 16, minute: 51 }, // 白露
-    { month: 9, day: 23, hour: 2, minute: 19 }, // 秋分
-    { month: 10, day: 8, hour: 8, minute: 22 }, // 寒露
-    { month: 10, day: 23, hour: 11, minute: 51 }, // 霜降
-    { month: 11, day: 7, hour: 12, minute: 4 }, // 立冬
-    { month: 11, day: 22, hour: 9, minute: 35 }, // 小雪
-    { month: 12, day: 7, hour: 5, minute: 56 }, // 大雪
-    { month: 12, day: 21, hour: 23, minute: 3 }, // 冬至
-    { month: 1, day: 6, hour: 4, minute: 31 }, // 小寒（次年）
-    { month: 1, day: 20, hour: 15, minute: 51 } // 大寒（次年）
-  ]
-};
 
 // 地域经纬度（用于真太阳时修正）
 const REGION_LONGITUDE: Record<string, number> = {
@@ -179,13 +38,143 @@ function getTrueSolarTimeCorrection(longitude: number): number {
   return Math.round((longitude - standardLongitude) * 4); // 每度经度差4分钟
 }
 
-// 获取立春时间
+// 获取立春时间（使用lunar-javascript库）
 function getLichunTime(year: number): Date | null {
-  const terms = SOLAR_TERMS_DATA[year];
-  if (!terms) return null;
-  
-  const lichun = terms[0]; // 立春是第一个节气
-  return new Date(year, lichun.month - 1, lichun.day, lichun.hour, lichun.minute);
+  try {
+    // 创建该年1月1日的Solar对象
+    const solar = Solar.fromYmd(year, 1, 1);
+    const lunar = solar.getLunar();
+    
+    // 获取节气表
+    const jieQiTable = lunar.getJieQiTable();
+    
+    // 查找立春节气
+    for (const [jieQiName, solarDate] of Object.entries(jieQiTable)) {
+      if (jieQiName === '立春') {
+        const jqSolar = solarDate as any;
+        return new Date(
+          jqSolar.getYear(),
+          jqSolar.getMonth() - 1,
+          jqSolar.getDay(),
+          jqSolar.getHour(),
+          jqSolar.getMinute()
+        );
+      }
+    }
+    
+    // 立春通常在2月3-5日
+    return new Date(year, 1, 4, 0, 0);
+  } catch (error) {
+    console.error('获取立春时间失败:', error);
+    return new Date(year, 1, 4, 0, 0);
+  }
+}
+
+// 获取节气月份（使用lunar-javascript库动态计算）
+function getSolarTermMonth(date: Date): { index: number; name: string; lunarName: string; termName: string } | null {
+  try {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+    
+    // 创建Solar对象并获取Lunar对象
+    const solar = Solar.fromYmd(year, month, day);
+    const lunar = solar.getLunar();
+    
+    // 获取节气表
+    const jieQiTable = lunar.getJieQiTable();
+    
+    // 十二月令对应节气（从寅月立春开始）
+    const monthInfo = [
+      { zhi: '寅', lunar: '正月', term: '立春', termIndex: 0 },
+      { zhi: '卯', lunar: '二月', term: '惊蛰', termIndex: 1 },
+      { zhi: '辰', lunar: '三月', term: '清明', termIndex: 2 },
+      { zhi: '巳', lunar: '四月', term: '立夏', termIndex: 3 },
+      { zhi: '午', lunar: '五月', term: '芒种', termIndex: 4 },
+      { zhi: '未', lunar: '六月', term: '小暑', termIndex: 5 },
+      { zhi: '申', lunar: '七月', term: '立秋', termIndex: 6 },
+      { zhi: '酉', lunar: '八月', term: '白露', termIndex: 7 },
+      { zhi: '戌', lunar: '九月', term: '寒露', termIndex: 8 },
+      { zhi: '亥', lunar: '十月', term: '立冬', termIndex: 9 },
+      { zhi: '子', lunar: '冬月', term: '大雪', termIndex: 10 },
+      { zhi: '丑', lunar: '腊月', term: '小寒', termIndex: 11 }
+    ];
+    
+    const currentDateTime = new Date(year, month - 1, day, hour, minute).getTime();
+    
+    // 遍历12个月，找出当前时间所属的节气月
+    for (let i = 0; i < 12; i++) {
+      const currentMonthInfo = monthInfo[i];
+      const nextMonthInfo = monthInfo[(i + 1) % 12];
+      
+      // 获取当前月的起始节气
+      const currentTermSolar = jieQiTable[currentMonthInfo.term] as any;
+      const nextTermSolar = jieQiTable[nextMonthInfo.term] as any;
+      
+      if (!currentTermSolar || !nextTermSolar) continue;
+      
+      const currentTermTime = new Date(
+        currentTermSolar.getYear(),
+        currentTermSolar.getMonth() - 1,
+        currentTermSolar.getDay(),
+        currentTermSolar.getHour(),
+        currentTermSolar.getMinute()
+      ).getTime();
+      
+      const nextTermTime = new Date(
+        nextTermSolar.getYear(),
+        nextTermSolar.getMonth() - 1,
+        nextTermSolar.getDay(),
+        nextTermSolar.getHour(),
+        nextTermSolar.getMinute()
+      ).getTime();
+      
+      // 判断当前时间是否在这个月份区间内
+      if (currentDateTime >= currentTermTime && currentDateTime < nextTermTime) {
+        return {
+          index: i,
+          name: currentMonthInfo.zhi,
+          lunarName: currentMonthInfo.lunar,
+          termName: currentMonthInfo.term
+        };
+      }
+    }
+    
+    // 降级处理
+    const approximateIndex = (month + 1) % 12;
+    return {
+      index: approximateIndex,
+      name: monthInfo[approximateIndex].zhi,
+      lunarName: monthInfo[approximateIndex].lunar,
+      termName: monthInfo[approximateIndex].term
+    };
+  } catch (error) {
+    console.error('获取节气月份失败:', error);
+    const month = date.getMonth() + 1;
+    const monthInfo = [
+      { zhi: '寅', lunar: '正月', term: '立春' },
+      { zhi: '卯', lunar: '二月', term: '惊蛰' },
+      { zhi: '辰', lunar: '三月', term: '清明' },
+      { zhi: '巳', lunar: '四月', term: '立夏' },
+      { zhi: '午', lunar: '五月', term: '芒种' },
+      { zhi: '未', lunar: '六月', term: '小暑' },
+      { zhi: '申', lunar: '七月', term: '立秋' },
+      { zhi: '酉', lunar: '八月', term: '白露' },
+      { zhi: '戌', lunar: '九月', term: '寒露' },
+      { zhi: '亥', lunar: '十月', term: '立冬' },
+      { zhi: '子', lunar: '冬月', term: '大雪' },
+      { zhi: '丑', lunar: '腊月', term: '小寒' }
+    ];
+    const approximateIndex = (month + 1) % 12;
+    return {
+      index: approximateIndex,
+      name: monthInfo[approximateIndex].zhi,
+      lunarName: monthInfo[approximateIndex].lunar,
+      termName: monthInfo[approximateIndex].term
+    };
+  }
 }
 
 // 根据立春判断八字年份（核心：立春前属上一年）
@@ -211,96 +200,6 @@ function getYearGanZhi(date: Date): string {
   const zhiIndex = (baziYear - 4) % 12;
   return TIANGAN[ganIndex] + DIZHI[zhiIndex];
 }
-
-// 获取节气月份（核心：寅月始于立春、卯月始于惊蛰...）
-// 返回：index是地支索引(0-11)，name是地支名称（用于月柱），lunarName是农历月份名称（用于显示），termName是节气名称
-function getSolarTermMonth(date: Date): { index: number; name: string; lunarName: string; termName: string } | null {
-  const year = date.getFullYear();
-  const dateTime = date.getTime();
-  
-  // 十二月令对应节气（从寅月立春开始）
-  // 寅月对应正月，卯月对应二月，...，子月对应十一月（冬月），丑月对应十二月（腊月）
-  const monthInfo = [
-    { zhi: '寅', lunar: '正月', term: '立春', termIndex: 0 },   // 寅月：立春-惊蛰
-    { zhi: '卯', lunar: '二月', term: '惊蛰', termIndex: 2 },   // 卯月：惊蛰-清明
-    { zhi: '辰', lunar: '三月', term: '清明', termIndex: 4 },   // 辰月：清明-立夏
-    { zhi: '巳', lunar: '四月', term: '立夏', termIndex: 6 },   // 巳月：立夏-芒种
-    { zhi: '午', lunar: '五月', term: '芒种', termIndex: 8 },   // 午月：芒种-小暑
-    { zhi: '未', lunar: '六月', term: '小暑', termIndex: 10 },  // 未月：小暑-立秋
-    { zhi: '申', lunar: '七月', term: '立秋', termIndex: 12 },  // 申月：立秋-白露
-    { zhi: '酉', lunar: '八月', term: '白露', termIndex: 14 },  // 酉月：白露-寒露
-    { zhi: '戌', lunar: '九月', term: '寒露', termIndex: 16 },  // 戌月：寒露-立冬
-    { zhi: '亥', lunar: '十月', term: '立冬', termIndex: 18 },  // 亥月：立冬-大雪
-    { zhi: '子', lunar: '冬月', term: '大雪', termIndex: 20 },  // 子月：大雪-小寒
-    { zhi: '丑', lunar: '腊月', term: '小寒', termIndex: 22 }   // 丑月：小寒-立春
-  ];
-  
-  const currentYearTerms = SOLAR_TERMS_DATA[year];
-  const prevYearTerms = SOLAR_TERMS_DATA[year - 1];
-  const nextYearTerms = SOLAR_TERMS_DATA[year + 1];
-  
-  if (!currentYearTerms) {
-    // 无节气数据时按公历月份近似（不精确，仅作降级）
-    const month = date.getMonth() + 1;
-    const approximateIndex = (month + 1) % 12;
-    return { 
-      index: approximateIndex, 
-      name: monthInfo[approximateIndex].zhi,
-      lunarName: monthInfo[approximateIndex].lunar,
-      termName: monthInfo[approximateIndex].term
-    };
-  }
-  
-  // 遍历12个节气月份
-  for (let i = 0; i < 12; i++) {
-    const currentMonthInfo = monthInfo[i];
-    const nextMonthInfo = monthInfo[(i + 1) % 12];
-    
-    // 获取当前月的起始节气
-    let currentTerm = currentYearTerms[currentMonthInfo.termIndex];
-    let currentTermDate: Date;
-    
-    // 处理跨年情况（1月的小寒、大寒属于前一年冬季）
-    if (currentTerm.month === 1 && i >= 10 && prevYearTerms) {
-      currentTerm = prevYearTerms[currentMonthInfo.termIndex];
-      currentTermDate = new Date(year - 1, currentTerm.month - 1, currentTerm.day, currentTerm.hour, currentTerm.minute);
-    } else {
-      currentTermDate = new Date(year, currentTerm.month - 1, currentTerm.day, currentTerm.hour, currentTerm.minute);
-    }
-    
-    // 获取下一月的起始节气
-    let nextTerm = currentYearTerms[nextMonthInfo.termIndex];
-    let nextTermDate: Date;
-    
-    // 下一个节气可能在当年或次年
-    if (nextTerm.month === 1 && nextMonthInfo.termIndex < currentMonthInfo.termIndex) {
-      // 跨年到次年1月
-      if (nextYearTerms) {
-        nextTerm = nextYearTerms[nextMonthInfo.termIndex];
-      }
-      nextTermDate = new Date(year + 1, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
-    } else if (nextTerm.month < currentTerm.month && nextTerm.month > 1) {
-      // 跨年到次年其他月份
-      nextTermDate = new Date(year + 1, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
-    } else {
-      nextTermDate = new Date(year, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
-    }
-    
-    // 判断当前时间是否在这个月份区间内
-    if (dateTime >= currentTermDate.getTime() && dateTime < nextTermDate.getTime()) {
-      return { 
-        index: i, 
-        name: currentMonthInfo.zhi,
-        lunarName: currentMonthInfo.lunar,
-        termName: currentMonthInfo.term
-      };
-    }
-  }
-  
-  return null;
-}
-
-// 计算月柱（基于节气 + 五虎遁元）
 // 口诀：甲己之年丙作首、乙庚之岁戊为头、丙辛必定寻庚起、丁壬壬位顺行流、若问戊癸何方发、甲寅之上好追求
 function getMonthGanZhi(date: Date): string {
   const baziYear = getBaziYear(date);
