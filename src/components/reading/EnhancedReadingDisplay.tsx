@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { ReadingBookmark } from './ReadingBookmark';
 import { ReadingFeedback } from './ReadingFeedback';
 import { ReadingExport } from './ReadingExport';
+import { ShareReading } from './ShareReading';
 
 interface EnhancedReadingDisplayProps {
   content: string;
@@ -54,6 +55,11 @@ export const EnhancedReadingDisplay = ({
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">AI解读内容</h3>
         <div className="flex gap-2">
+          <ShareReading
+            baziRecordId={baziRecordId}
+            content={content}
+            readingType={readingType}
+          />
           <ReadingBookmark
             baziRecordId={baziRecordId}
             readingType={readingType}

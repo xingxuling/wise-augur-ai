@@ -367,6 +367,53 @@ export type Database = {
           },
         ]
       }
+      reading_shares: {
+        Row: {
+          bazi_record_id: string
+          content: Json
+          created_at: string
+          expires_at: string | null
+          id: string
+          reading_type: string
+          share_code: string
+          updated_at: string
+          user_id: string
+          views_count: number
+        }
+        Insert: {
+          bazi_record_id: string
+          content: Json
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          reading_type: string
+          share_code: string
+          updated_at?: string
+          user_id: string
+          views_count?: number
+        }
+        Update: {
+          bazi_record_id?: string
+          content?: Json
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          reading_type?: string
+          share_code?: string
+          updated_at?: string
+          user_id?: string
+          views_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reading_shares_bazi_record_id_fkey"
+            columns: ["bazi_record_id"]
+            isOneToOne: false
+            referencedRelation: "bazi_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           auto_renew: boolean | null

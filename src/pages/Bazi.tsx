@@ -16,6 +16,8 @@ import { ReadingHistory } from "@/components/reading/ReadingHistory";
 import { DayunChart } from "@/components/reading/DayunChart";
 import { LiunianAnalysis } from "@/components/reading/LiunianAnalysis";
 import { CustomQuestion } from "@/components/reading/CustomQuestion";
+import { QuestionHistory } from "@/components/reading/QuestionHistory";
+import { BookmarkManager } from "@/components/reading/BookmarkManager";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { MembershipBadge } from "@/components/MembershipBadge";
 import { AdminBadge } from "@/components/AdminBadge";
@@ -258,11 +260,17 @@ const Bazi = () => {
               返回首页
             </Button>
             <div className="flex items-center gap-3">
-              {!result && <ReadingHistory onSelectRecord={(record) => {
-                setResult(record.result);
-                setRecordId(record.id);
-                setGender(record.gender as "male" | "female");
-              }} />}
+              {!result && (
+                <>
+                  <ReadingHistory onSelectRecord={(record) => {
+                    setResult(record.result);
+                    setRecordId(record.id);
+                    setGender(record.gender as "male" | "female");
+                  }} />
+                  <QuestionHistory />
+                  <BookmarkManager />
+                </>
+              )}
               <AdminBadge />
               <MembershipBadge />
               <LanguageSelector />
