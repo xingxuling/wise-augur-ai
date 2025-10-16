@@ -1,58 +1,123 @@
+import { Check, Sparkles, Zap, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, Crown, Sparkles, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { useState, useEffect } from "react";
+import { REGIONS, getRegionByValue } from "@/lib/regions";
 
-const plans = [
+type PlanType = 'basic' | 'advanced' | 'premium';
+
+interface Plan {
+  name: string;
+  price: { CNY: number; HKD: number; MOP: number; TWD: number };
+  description: string;
+  features: string[];
+  icon: typeof Sparkles;
+  popular?: boolean;
+  type: PlanType;
+}
+
+const plans: Plan[] = [
   {
     name: "基础版",
-    price: "¥88",
-    period: "/月",
-    description: "适合初次探索命理的用户",
+    price: { CNY: 88, HKD: 128, MOP: 128, TWD: 380 },
+    description: "适合初次测算，了解命理基础",
     features: [
-      "每月5次八字排盘",
-      "基础命理报告",
-      "每日运势推送",
-      "AI聊天咨询（限时）",
+      "八字排盘（精准到分钟）",
+      "五行分析",
+      "AI基础解读",
+      "保存1次测算记录",
+      "公历/农历切换",
+      "全地区支持",
     ],
     icon: Sparkles,
-    popular: false,
+    type: 'basic',
   },
   {
     name: "进阶版",
-    price: "¥288",
-    period: "/月",
-    description: "深度命理分析与指导",
+    price: { CNY: 288, HKD: 388, MOP: 388, TWD: 1180 },
+    description: "深度专业解读，洞察命运密码",
     features: [
-      "无限次八字排盘",
-      "紫微斗数完整解析",
-      "风水布局建议",
-      "AI深度咨询",
-      "专属命理课程",
-      "月度运势详报",
+      "基础版全部功能",
+      "十神分析",
+      "格局判断",
+      "用神分析",
+      "大运流年解读",
+      "AI专业解读（事业/感情/财富/健康）",
+      "保存10次测算记录",
+      "AI命理教练（每日指导）",
+      "月度桃花方位图",
     ],
-    icon: Star,
+    icon: Zap,
     popular: true,
+    type: 'advanced',
   },
   {
     name: "尊享版",
-    price: "¥888",
-    period: "/月",
-    description: "VIP专属尊贵体验",
+    price: { CNY: 888, HKD: 1188, MOP: 1188, TWD: 3680 },
+    description: "尊贵服务，大师级体验",
     features: [
       "进阶版全部功能",
-      "1对1大师指导",
-      "定制化命理方案",
-      "线下活动优先权",
-      "风水商品专属折扣",
-      "全年运势详报",
+      "无限次测算记录",
+      "紫微斗数（即将推出）",
+      "风水分析（即将推出）",
+      "1对1大师咨询（1次/月）",
+      "专属命理报告（月度）",
       "优先客服支持",
+      "终身会员专属社群",
     ],
     icon: Crown,
-    popular: false,
+    type: 'premium',
   },
 ];
 
 const Pricing = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [userRegion, setUserRegion] = useState('beijing');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // 检查用户登录状态
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsAuthenticated(!!user);
+    });
+
+    // 从localStorage获取用户偏好地区
+    const savedRegion = localStorage.getItem('user_region');
+    if (savedRegion) {
+      setUserRegion(savedRegion);
+    }
+  }, []);
+
+  const handleSubscribe = async (planType: PlanType) => {
+    // 检查登录状态
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "请先登录",
+        description: "订阅会员需要先登录账号",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
+    // 保存订阅意向并跳转到支付页面
+    localStorage.setItem('pending_subscription', JSON.stringify({
+      planType,
+      region: userRegion,
+      timestamp: Date.now(),
+    }));
+
+    navigate("/checkout");
+  };
+
+  const regionData = getRegionByValue(userRegion);
+  const currencySymbol = regionData.displayCurrency;
+
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background effects */}
@@ -107,11 +172,9 @@ const Pricing = () => {
                   </div>
 
                   {/* Price */}
-                  <div className="flex items-baseline gap-1">
-                    <span className={`text-5xl font-bold ${plan.popular ? 'text-gradient' : 'text-foreground'}`}>
-                      {plan.price}
-                    </span>
-                    <span className="text-muted-foreground">{plan.period}</span>
+                  <div className="text-4xl font-bold text-gradient mb-2">
+                    {currencySymbol}{plan.price[regionData.currency as keyof typeof plan.price]}
+                    <span className="text-lg font-normal text-muted-foreground">/月</span>
                   </div>
 
                   {/* Features */}
@@ -125,10 +188,11 @@ const Pricing = () => {
                   </ul>
 
                   {/* CTA Button */}
-                  <Button
-                    variant={plan.popular ? "hero" : "mystical"}
+                  <Button 
+                    className="w-full" 
+                    variant={plan.popular ? "default" : "outline"}
                     size="lg"
-                    className="w-full"
+                    onClick={() => handleSubscribe(plan.type)}
                   >
                     立即订阅
                   </Button>
@@ -141,7 +205,7 @@ const Pricing = () => {
         {/* Additional info */}
         <div className="text-center mt-12 space-y-2">
           <p className="text-sm text-muted-foreground">
-            所有套餐均支持支付宝、微信支付、银联
+            支持多种支付方式，按地区自动优化
           </p>
           <p className="text-xs text-muted-foreground">
             * 命理内容仅供参考，请理性看待

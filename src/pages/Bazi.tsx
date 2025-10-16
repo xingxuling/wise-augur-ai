@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Sparkles, ArrowLeft } from "lucide-react";
+import { Loader2, Sparkles, ArrowLeft, Calendar as CalendarIcon } from "lucide-react";
 import { z } from "zod";
+import { REGIONS, getRegionByValue } from "@/lib/regions";
+import { CalendarType, formatDate, correctDate, isValidSolarDate, isValidLunarDate, solarToLunar, lunarToSolar } from "@/lib/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const baziInputSchema = z.object({
   year: z.number().min(1900).max(2100),
@@ -33,12 +36,13 @@ const Bazi = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [calendarType, setCalendarType] = useState<CalendarType>("solar");
   const [year, setYear] = useState("");
   const [month, setMonth] = useState("");
   const [day, setDay] = useState("");
   const [hour, setHour] = useState("");
   const [minute, setMinute] = useState("0");
-  const [city, setCity] = useState("北京");
+  const [region, setRegion] = useState("beijing");
   const [result, setResult] = useState<BaziResult | null>(null);
   const [recordId, setRecordId] = useState<string>("");
   const [aiReading, setAiReading] = useState<string>("");
@@ -68,12 +72,45 @@ const Bazi = () => {
   const handleCalculate = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 验证输入
+    let solarYear = parseInt(year);
+    let solarMonth = parseInt(month);
+    let solarDay = parseInt(day);
+    
+    // 历法验证与转换
+    if (calendarType === 'lunar') {
+      // 验证农历日期
+      if (!isValidLunarDate(solarYear, solarMonth, solarDay)) {
+        const corrected = correctDate(solarYear, solarMonth, solarDay, 'lunar');
+        toast({
+          title: "农历日期自动修正",
+          description: `当前农历日期不存在，已自动调整为${formatDate(corrected)}`,
+        });
+        solarDay = corrected.day;
+      }
+      
+      // 农历转公历
+      const solarDate = lunarToSolar(solarYear, solarMonth, solarDay);
+      solarYear = solarDate.year;
+      solarMonth = solarDate.month;
+      solarDay = solarDate.day;
+    } else {
+      // 验证公历日期
+      if (!isValidSolarDate(solarYear, solarMonth, solarDay)) {
+        toast({
+          title: "输入错误",
+          description: "请输入有效的公历日期",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    // 验证时间
     try {
       baziInputSchema.parse({
-        year: parseInt(year),
-        month: parseInt(month),
-        day: parseInt(day),
+        year: solarYear,
+        month: solarMonth,
+        day: solarDay,
         hour: parseInt(hour),
         minute: parseInt(minute),
       });
@@ -91,14 +128,15 @@ const Bazi = () => {
     setIsCalculating(true);
 
     try {
+      const selectedRegion = getRegionByValue(region);
       const { data, error } = await supabase.functions.invoke('bazi-calculate', {
         body: {
-          birthYear: parseInt(year),
-          birthMonth: parseInt(month),
-          birthDay: parseInt(day),
+          birthYear: solarYear,
+          birthMonth: solarMonth,
+          birthDay: solarDay,
           birthHour: parseInt(hour),
           birthMinute: parseInt(minute),
-          city: city,
+          city: selectedRegion.label,
         },
       });
 
@@ -185,15 +223,41 @@ const Bazi = () => {
         {!result && (
           <Card className="p-8 bg-card/80 backdrop-blur-md border-primary/20">
             <form onSubmit={handleCalculate} className="space-y-6">
+              {/* 历法切换 */}
+              <div className="flex items-center justify-center gap-2 p-3 bg-background/50 rounded-lg border border-primary/20">
+                <CalendarIcon className="w-5 h-5 text-primary" />
+                <Button
+                  type="button"
+                  variant={calendarType === 'solar' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCalendarType('solar')}
+                >
+                  公历
+                </Button>
+                <Button
+                  type="button"
+                  variant={calendarType === 'lunar' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCalendarType('lunar')}
+                >
+                  农历
+                </Button>
+                <span className="text-sm text-muted-foreground ml-2">
+                  {calendarType === 'solar' ? '公历生日' : '农历生日（按节气）'}
+                </span>
+              </div>
+
               {/* 移动端优化：紧凑布局 */}
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="year" className="text-sm">出生年份</Label>
+                    <Label htmlFor="year" className="text-sm">
+                      {calendarType === 'solar' ? '出生年份' : '农历年份'}
+                    </Label>
                     <Input
                       id="year"
                       type="number"
-                      placeholder="1990"
+                      placeholder={calendarType === 'solar' ? '1990' : '如：2024'}
                       value={year}
                       onChange={(e) => setYear(e.target.value)}
                       required
@@ -203,7 +267,9 @@ const Bazi = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="month" className="text-sm">月份</Label>
+                    <Label htmlFor="month" className="text-sm">
+                      {calendarType === 'solar' ? '月份' : '农历月份'}
+                    </Label>
                     <Input
                       id="month"
                       type="number"
@@ -220,11 +286,13 @@ const Bazi = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="day" className="text-sm">日期</Label>
+                    <Label htmlFor="day" className="text-sm">
+                      {calendarType === 'solar' ? '日期' : '农历日期'}
+                    </Label>
                     <Input
                       id="day"
                       type="number"
-                      placeholder="1-31"
+                      placeholder={calendarType === 'solar' ? '1-31' : '如：15'}
                       value={day}
                       onChange={(e) => setDay(e.target.value)}
                       required
@@ -234,22 +302,19 @@ const Bazi = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="city" className="text-sm">出生城市</Label>
-                    <select
-                      id="city"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-base"
-                    >
-                      <option value="北京">北京</option>
-                      <option value="上海">上海</option>
-                      <option value="广州">广州</option>
-                      <option value="深圳">深圳</option>
-                      <option value="成都">成都</option>
-                      <option value="杭州">杭州</option>
-                      <option value="重庆">重庆</option>
-                      <option value="西安">西安</option>
-                    </select>
+                    <Label htmlFor="region" className="text-sm">出生地区</Label>
+                    <Select value={region} onValueChange={setRegion}>
+                      <SelectTrigger className="text-base bg-background">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px] bg-background z-50">
+                        {REGIONS.map((r) => (
+                          <SelectItem key={r.value} value={r.value} className="text-base">
+                            {r.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -308,6 +373,12 @@ const Bazi = () => {
               <p className="text-xs text-center text-muted-foreground">
                 * 命理内容仅供参考，请理性看待
               </p>
+              
+              {calendarType === 'lunar' && (
+                <p className="text-xs text-center text-primary">
+                  农历日期将自动转换为公历进行排盘（基于节气规则）
+                </p>
+              )}
             </form>
           </Card>
         )}
@@ -510,19 +581,20 @@ const Bazi = () => {
               )}
             </Card>
 
-            <Button
-              variant="outline"
-              onClick={() => {
-                setResult(null);
-                setRecordId("");
-                setAiReading("");
-                setShowProfessional(false);
-                setActiveReadingTab("basic");
-              }}
-              className="w-full"
-            >
-              重新测算
-            </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setResult(null);
+                  setRecordId("");
+                  setAiReading("");
+                  setShowProfessional(false);
+                  setActiveReadingTab("basic");
+                  setCalendarType("solar");
+                }}
+                className="w-full"
+              >
+                重新测算
+              </Button>
           </div>
         )}
       </div>
