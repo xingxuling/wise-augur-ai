@@ -1,146 +1,171 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('未授权');
+    const { questionId } = await req.json();
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+
+    if (!lovableApiKey) {
+      console.error("LOVABLE_API_KEY未配置");
+      throw new Error("AI服务未配置");
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('用户未登录');
+    // 获取问题详情
+    const { data: question, error: questionError } = await supabase
+      .from("custom_questions")
+      .select(`
+        *,
+        bazi_record:bazi_records(*)
+      `)
+      .eq("id", questionId)
+      .single();
+
+    if (questionError || !question) {
+      console.error("获取问题失败:", questionError);
+      throw new Error("问题不存在");
     }
 
-    const { questionId, question, baziData } = await req.json();
+    // 获取八字数据
+    const baziData = question.bazi_record.result;
 
-    if (!questionId || !question || !baziData) {
-      throw new Error('缺少必要参数');
-    }
+    // 提取场景信息
+    const sceneType = question.scene_type || "general";
+    const sceneCategory = question.scene_category || "";
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('AI服务未配置');
-    }
+    // 场景标签映射
+    const sceneLabels: Record<string, string> = {
+      'career': '职场发展',
+      'love': '感情婚姻',
+      'wealth': '财运财富',
+      'health': '健康养生',
+      'education': '学业深造'
+    };
 
-    // 构建AI提示词
-    const baziInfo = baziData;
-    const systemPrompt = `你是一位精通《渊海子平》《三命通会》《滴天髓》等古籍的命理学专家，擅长根据八字回答具体问题。
+    // 构建系统提示词
+    const systemPrompt = `你是一位专业的八字命理师。用户的八字信息如下：
 
-核心原则：
-1. 基于传统命理体系进行专业分析
-2. 禁用封建迷信表述，用现代化语言表达
-3. 避免绝对化表述（禁用"必定/绝对/一定"）
-4. 提供建设性、实用性建议
-5. 所有解答末尾必须标注"以上建议仅供参考，人生走向取决于自身选择与努力"
+【基本八字】
+年柱：${baziData.year.stem}${baziData.year.branch}
+月柱：${baziData.month.stem}${baziData.month.branch}
+日柱：${baziData.day.stem}${baziData.day.branch}
+时柱：${baziData.hour.stem}${baziData.hour.branch}
 
-解答要求：
-- 针对用户的具体问题，结合八字特点给出专业分析
-- 字数控制在200-400字
-- 语言通俗易懂，避免过多术语堆砌
-- 提供具体可行的建议`;
+【格局信息】
+${baziData.pattern ? `格局：${baziData.pattern.pattern}
+格局说明：${baziData.pattern.description}` : "普通格局"}
 
-    const userPrompt = `【用户问题】
-${question}
+【五行分析】
+${baziData.wuxingAnalysis ? Object.entries(baziData.wuxingAnalysis).map(([key, value]) => `${key}：${value}`).join('\n') : ''}
 
-【八字信息】
-四柱：${baziInfo.bazi?.year || ''} ${baziInfo.bazi?.month || ''} ${baziInfo.bazi?.day || ''} ${baziInfo.bazi?.hour || ''}
-格局：${baziInfo.pattern?.pattern || '待判断'}
-${baziInfo.pattern?.isSpecial ? `（特殊格局：${baziInfo.pattern.description}）` : ''}
-用神：${baziInfo.yongshen?.yongshen || '待判断'}
-日主强弱：${baziInfo.dayMasterStrength || '待判断'}
+用户咨询的场景是：${sceneLabels[sceneType] || sceneType}
+具体分类：${sceneCategory}
 
-请针对用户的问题，结合以上八字信息给出专业建议。`;
+请根据用户的八字和场景，提供专业、具体、可行的解读建议。
 
-    // 调用Lovable AI
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
+你的回答必须包含以下结构：
+
+【核心建议】（3个）
+1. [第一条建议]：具体可行的行动建议，结合八字特点
+2. [第二条建议]：从不同角度提供补充建议
+3. [第三条建议]：长期规划或策略性建议
+
+【风险提示】（2个）
+1. [第一个风险]：需要特别注意的潜在问题
+2. [第二个风险]：可能遇到的挑战或阻碍
+
+【立即行动】（1个）
+具体的、可在本周内执行的行动步骤
+
+回答要求：
+- 白话易懂，避免晦涩术语
+- 每条建议具体可行，避免泛泛而谈
+- 紧密结合用户的场景类型，不要偏离主题
+- 语气温和专业，给用户信心
+- 适当引用八字特征来支撑建议
+- 总字数控制在500-800字之间`;
+
+    console.log("开始调用AI生成定制解读，问题ID:", questionId);
+
+    // 调用AI生成回答
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${lovableApiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: "google/gemini-2.5-flash",
         messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
+          { role: "system", content: systemPrompt },
+          { role: "user", content: question.question },
         ],
-        max_completion_tokens: 1000,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI API错误:', response.status, errorText);
-      throw new Error(`AI服务暂时不可用 (${response.status})`);
+      console.error("AI API错误:", response.status, errorText);
+      throw new Error("AI生成失败");
     }
 
-    const aiData = await response.json();
-    const answer = aiData.choices[0]?.message?.content;
+    const aiResult = await response.json();
+    const answer = aiResult.choices[0].message.content;
 
-    if (!answer) {
-      throw new Error('AI解答生成失败');
-    }
+    console.log("AI生成成功，更新数据库");
 
-    // 更新问题记录
+    // 更新问题状态
     const { error: updateError } = await supabase
-      .from('custom_questions')
+      .from("custom_questions")
       .update({
         answer,
-        status: 'answered',
+        status: "answered",
         answered_at: new Date().toISOString(),
       })
-      .eq('id', questionId);
+      .eq("id", questionId);
 
     if (updateError) {
-      console.error('更新问题记录失败:', updateError);
+      console.error("更新问题失败:", updateError);
+      throw updateError;
     }
 
-    // 记录AI使用
-    const { error: usageError } = await supabase
-      .from('ai_usage_records')
-      .insert({
-        user_id: user.id,
-        usage_type: 'custom_question',
-      });
-
-    if (usageError) {
-      console.error('记录使用次数失败:', usageError);
-    }
+    console.log("定制解读生成成功:", questionId);
 
     return new Response(
-      JSON.stringify({ success: true, answer }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
-  } catch (error) {
-    console.error('自定义问题解答错误:', error);
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error instanceof Error ? error.message : '解答失败' 
+      JSON.stringify({
+        success: true,
+        answer,
+        questionId,
       }),
       {
-        status: error instanceof Error && error.message.includes('未授权') ? 401 : 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  } catch (error: any) {
+    console.error("处理失败:", error);
+    return new Response(
+      JSON.stringify({ 
+        success: false,
+        error: error.message || "未知错误"
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   }

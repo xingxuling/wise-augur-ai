@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Sparkles, ArrowLeft, Calendar as CalendarIcon } from "lucide-react";
+import { Loader2, Sparkles, ArrowLeft, Calendar as CalendarIcon, BarChart3 } from "lucide-react";
 import { z } from "zod";
 import { REGIONS, getRegionByValue } from "@/lib/regions";
 import { CalendarType, formatDate, correctDate, isValidSolarDate, isValidLunarDate, solarToLunar, lunarToSolar, LUNAR_MONTHS, LUNAR_DAYS, lunarMonthNameToNumber, lunarDayNameToNumber } from "@/lib/calendar";
@@ -18,11 +18,22 @@ import { LiunianAnalysis } from "@/components/reading/LiunianAnalysis";
 import { CustomQuestion } from "@/components/reading/CustomQuestion";
 import { QuestionHistory } from "@/components/reading/QuestionHistory";
 import { BookmarkManager } from "@/components/reading/BookmarkManager";
+import { WuxingPieChart } from "@/components/visualization/WuxingPieChart";
+import { ShishenRadarChart } from "@/components/visualization/ShishenRadarChart";
+import { BaziMatrixChart } from "@/components/visualization/BaziMatrixChart";
+import { CustomReadingScenes } from "@/components/reading/CustomReadingScenes";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { MembershipBadge } from "@/components/MembershipBadge";
 import { AdminBadge } from "@/components/AdminBadge";
 import { useMembership } from "@/hooks/useMembership";
 import { useAIUsage } from "@/hooks/useAIUsage";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const baziInputSchema = z.object({
   year: z.number().min(1900).max(2100),
@@ -64,6 +75,13 @@ const Bazi = () => {
   const [isLoadingReading, setIsLoadingReading] = useState(false);
   const [showProfessional, setShowProfessional] = useState(false);
   const [activeReadingTab, setActiveReadingTab] = useState<string>("basic");
+  const [showVisualization, setShowVisualization] = useState(false);
+  const [elementDialog, setElementDialog] = useState<{ open: boolean; element: string; info: string }>({ 
+    open: false, element: '', info: '' 
+  });
+  const [shishenDialog, setShishenDialog] = useState<{ open: boolean; shishen: string; info: string }>({ 
+    open: false, shishen: '', info: '' 
+  });
   const readingContentRef = useRef<HTMLDivElement>(null);
   const { membership, hasFeature, canUseAI } = useMembership();
   const { usageCount, recordUsage } = useAIUsage();
@@ -688,12 +706,26 @@ const Bazi = () => {
                 </div>
                 
                 <div className="flex flex-wrap gap-3">
+                  <Button
+                    variant={showVisualization ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      setShowVisualization(!showVisualization);
+                      setAiReading("");
+                    }}
+                  >
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    数据可视化
+                  </Button>
                   {['general', 'career', 'love', 'wealth', 'health'].map((type) => (
                     <Button
                       key={type}
                       variant="outline"
                       size="sm"
-                      onClick={() => handleAiReading(type)}
+                      onClick={() => {
+                        setShowVisualization(false);
+                        handleAiReading(type);
+                      }}
                       disabled={isLoadingReading}
                     >
                       {{
@@ -705,6 +737,15 @@ const Bazi = () => {
                       }[type]}
                     </Button>
                   ))}
+                  <CustomReadingScenes
+                    baziRecordId={recordId}
+                    onQuestionSubmitted={() => {
+                      toast({
+                        title: "定制解读已提交",
+                        description: "请稍等，AI正在为您生成专属解读...",
+                      });
+                    }}
+                  />
                 </div>
               </div>
 
@@ -715,7 +756,34 @@ const Bazi = () => {
                 </div>
               )}
 
-              {aiReading && !isLoadingReading && (
+              {showVisualization && !isLoadingReading && (
+                <div className="space-y-6 mt-6">
+                  <WuxingPieChart 
+                    baziData={result}
+                    onElementClick={(element) => {
+                      const descriptions: Record<string, string> = {
+                        '金': '金元素代表决断力、执行力。金旺者性格果断，适合决策岗位；金弱需注意呼吸系统健康。职场建议：适合管理、金融、法律等需要决断力的工作。',
+                        '木': '木元素代表生长力、创造力。木旺者富有活力，适合创意工作；木弱易肝胆不适。职场建议：适合教育、文化、创意设计等发展性工作。',
+                        '水': '水元素代表智慧、灵活性。水旺者思维敏捷，适合策划分析；水弱需补充水分。职场建议：适合咨询、研究、策划等智力型工作。',
+                        '火': '火元素代表热情、行动力。火旺者积极主动，适合营销公关；火弱易心血管问题。职场建议：适合销售、公关、演艺等需要表现力的工作。',
+                        '土': '土元素代表稳定、包容性。土旺者踏实可靠，适合管理岗位；土弱需注意脾胃。职场建议：适合行政、房地产、农业等稳定性工作。'
+                      };
+                      setElementDialog({ open: true, element, info: descriptions[element] || '' });
+                    }}
+                  />
+                  {membership && membership.tier !== 'free' && (
+                    <ShishenRadarChart 
+                      baziData={result}
+                      onShishenHover={(shishen, info) => {
+                        setShishenDialog({ open: true, shishen, info });
+                      }}
+                    />
+                  )}
+                  <BaziMatrixChart baziData={result} />
+                </div>
+              )}
+
+              {aiReading && !isLoadingReading && !showVisualization && (
                 <div ref={readingContentRef}>
                   <EnhancedReadingDisplay
                     content={aiReading}
@@ -755,6 +823,7 @@ const Bazi = () => {
                   setAiReading("");
                   setShowProfessional(false);
                   setActiveReadingTab("basic");
+                  setShowVisualization(false);
                   setCalendarType("solar");
                 }}
                 className="w-full"
@@ -764,6 +833,30 @@ const Bazi = () => {
           </div>
         )}
       </div>
+
+      {/* 五行详解对话框 */}
+      <Dialog open={elementDialog.open} onOpenChange={(open) => setElementDialog({ ...elementDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{elementDialog.element}行详解</DialogTitle>
+            <DialogDescription>
+              {elementDialog.info}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      {/* 十神详解对话框 */}
+      <Dialog open={shishenDialog.open} onOpenChange={(open) => setShishenDialog({ ...shishenDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{shishenDialog.shishen}</DialogTitle>
+            <DialogDescription>
+              {shishenDialog.info}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

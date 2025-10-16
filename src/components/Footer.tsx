@@ -34,9 +34,9 @@ const Footer = () => {
             <h4 className="font-semibold text-foreground mb-4">关于我们</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="hover:text-primary transition-colors cursor-pointer">公司介绍</li>
-              <li className="hover:text-primary transition-colors cursor-pointer">团队成员</li>
+              <li><a href="/learning" className="hover:text-primary transition-colors">学习中心</a></li>
+              <li><a href="/referral" className="hover:text-primary transition-colors">邀请有礼</a></li>
               <li className="hover:text-primary transition-colors cursor-pointer">联系我们</li>
-              <li className="hover:text-primary transition-colors cursor-pointer">加入我们</li>
             </ul>
           </div>
 
