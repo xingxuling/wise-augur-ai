@@ -85,6 +85,56 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_records: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string
+          id: string
+          payment_method: string
+          payment_status: string
+          region: string | null
+          subscription_id: string | null
+          transaction_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string
+          id?: string
+          payment_method: string
+          payment_status?: string
+          region?: string | null
+          subscription_id?: string | null
+          transaction_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string
+          id?: string
+          payment_method?: string
+          payment_status?: string
+          region?: string | null
+          subscription_id?: string | null
+          transaction_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_records_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -111,28 +161,40 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          auto_renew: boolean | null
           created_at: string | null
+          currency: string | null
           expires_at: string
           id: string
-          plan_type: string
+          payment_method: string | null
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          region: string | null
           started_at: string | null
           status: string
           user_id: string
         }
         Insert: {
+          auto_renew?: boolean | null
           created_at?: string | null
+          currency?: string | null
           expires_at: string
           id?: string
-          plan_type: string
+          payment_method?: string | null
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          region?: string | null
           started_at?: string | null
           status?: string
           user_id: string
         }
         Update: {
+          auto_renew?: boolean | null
           created_at?: string | null
+          currency?: string | null
           expires_at?: string
           id?: string
-          plan_type?: string
+          payment_method?: string | null
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          region?: string | null
           started_at?: string | null
           status?: string
           user_id?: string
@@ -147,7 +209,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      subscription_plan: "basic" | "advanced" | "premium"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -274,6 +336,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      subscription_plan: ["basic", "advanced", "premium"],
+    },
   },
 } as const
