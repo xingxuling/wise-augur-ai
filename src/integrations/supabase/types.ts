@@ -159,6 +159,100 @@ export type Database = {
         }
         Relationships: []
       }
+      reading_bookmarks: {
+        Row: {
+          bazi_record_id: string
+          content: string
+          created_at: string
+          highlight_text: string | null
+          id: string
+          note: string | null
+          reading_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bazi_record_id: string
+          content: string
+          created_at?: string
+          highlight_text?: string | null
+          id?: string
+          note?: string | null
+          reading_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bazi_record_id?: string
+          content?: string
+          created_at?: string
+          highlight_text?: string | null
+          id?: string
+          note?: string | null
+          reading_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reading_bookmarks_bazi_record_id_fkey"
+            columns: ["bazi_record_id"]
+            isOneToOne: false
+            referencedRelation: "bazi_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reading_feedbacks: {
+        Row: {
+          admin_note: string | null
+          bazi_record_id: string
+          created_at: string
+          feedback_text: string | null
+          feedback_type: string
+          id: string
+          reading_content: string
+          reading_type: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          bazi_record_id: string
+          created_at?: string
+          feedback_text?: string | null
+          feedback_type: string
+          id?: string
+          reading_content: string
+          reading_type: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          bazi_record_id?: string
+          created_at?: string
+          feedback_text?: string | null
+          feedback_type?: string
+          id?: string
+          reading_content?: string
+          reading_type?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reading_feedbacks_bazi_record_id_fkey"
+            columns: ["bazi_record_id"]
+            isOneToOne: false
+            referencedRelation: "bazi_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           auto_renew: boolean | null
@@ -201,6 +295,66 @@ export type Database = {
         }
         Relationships: []
       }
+      user_memberships: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          tier: Database["public"]["Enums"]["membership_tier"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: Database["public"]["Enums"]["membership_tier"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: Database["public"]["Enums"]["membership_tier"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          language: string
+          region: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          language?: string
+          region?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          language?: string
+          region?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -209,6 +363,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      membership_tier: "free" | "basic" | "premium" | "vip"
       subscription_plan: "basic" | "advanced" | "premium"
     }
     CompositeTypes: {
@@ -337,6 +492,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      membership_tier: ["free", "basic", "premium", "vip"],
       subscription_plan: ["basic", "advanced", "premium"],
     },
   },
