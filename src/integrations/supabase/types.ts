@@ -147,6 +147,47 @@ export type Database = {
         }
         Relationships: []
       }
+      bazi_derivation_cache: {
+        Row: {
+          bazi_record_id: string
+          calculation_data: Json
+          created_at: string | null
+          explanation: string
+          id: string
+          step_index: number
+          step_name: string
+          user_id: string
+        }
+        Insert: {
+          bazi_record_id: string
+          calculation_data: Json
+          created_at?: string | null
+          explanation: string
+          id?: string
+          step_index: number
+          step_name: string
+          user_id: string
+        }
+        Update: {
+          bazi_record_id?: string
+          calculation_data?: Json
+          created_at?: string | null
+          explanation?: string
+          id?: string
+          step_index?: number
+          step_name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazi_derivation_cache_bazi_record_id_fkey"
+            columns: ["bazi_record_id"]
+            isOneToOne: false
+            referencedRelation: "bazi_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bazi_records: {
         Row: {
           birth_day: number
@@ -962,6 +1003,33 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_scene_preferences: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_used_at: string | null
+          scene_type: string
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_used_at?: string | null
+          scene_type: string
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_used_at?: string | null
+          scene_type?: string
+          usage_count?: number | null
           user_id?: string
         }
         Relationships: []

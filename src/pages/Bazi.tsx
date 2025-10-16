@@ -18,6 +18,8 @@ import { LiunianAnalysis } from "@/components/reading/LiunianAnalysis";
 import { CustomQuestion } from "@/components/reading/CustomQuestion";
 import { QuestionHistory } from "@/components/reading/QuestionHistory";
 import { BookmarkManager } from "@/components/reading/BookmarkManager";
+import { QuickSceneEntry } from "@/components/bazi/QuickSceneEntry";
+import { DerivationProcess } from "@/components/bazi/DerivationProcess";
 import { WuxingPieChart } from "@/components/visualization/WuxingPieChart";
 import { ShishenRadarChart } from "@/components/visualization/ShishenRadarChart";
 import { BaziMatrixChart } from "@/components/visualization/BaziMatrixChart";
@@ -77,6 +79,8 @@ const Bazi = () => {
   const [showProfessional, setShowProfessional] = useState(false);
   const [activeReadingTab, setActiveReadingTab] = useState<string>("basic");
   const [showVisualization, setShowVisualization] = useState(false);
+  const [showDerivation, setShowDerivation] = useState(false);
+  const [selectedScene, setSelectedScene] = useState<string>("");
   const [elementDialog, setElementDialog] = useState<{ open: boolean; element: string; info: string }>({ 
     open: false, element: '', info: '' 
   });
@@ -202,6 +206,14 @@ const Bazi = () => {
         title: "智能八字解析",
         description: "八字排盘完成",
       });
+
+      // 如果选择了场景，自动触发AI解读
+      if (selectedScene) {
+        setTimeout(() => {
+          handleAiReading(selectedScene);
+          setSelectedScene('');
+        }, 500);
+      }
     } catch (error) {
       console.error('八字计算错误:', error);
       toast({
@@ -506,6 +518,23 @@ const Bazi = () => {
                 </p>
               )}
             </form>
+
+            {/* 一键场景化入口 */}
+            {year && month && day && hour && minute && (
+              <div className="mt-6">
+                <QuickSceneEntry
+                  onSceneSelect={(sceneType) => {
+                    setSelectedScene(sceneType);
+                    // 自动触发排盘
+                    const form = document.querySelector('form');
+                    if (form) {
+                      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                    }
+                  }}
+                  disabled={isCalculating}
+                />
+              </div>
+            )}
           </Card>
         )}
 
@@ -715,10 +744,22 @@ const Bazi = () => {
                     size="sm"
                     onClick={() => {
                       setShowVisualization(!showVisualization);
+                      setShowDerivation(false);
                     }}
                   >
                     <BarChart3 className="w-4 h-4 mr-2" />
                     {showVisualization ? '隐藏图表' : '数据可视化'}
+                  </Button>
+                  <Button
+                    variant={showDerivation ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      setShowDerivation(!showDerivation);
+                      setShowVisualization(false);
+                      setAiReading('');
+                    }}
+                  >
+                    🔍 推导过程
                   </Button>
                   {['general', 'career', 'love', 'wealth', 'health'].map((type) => (
                     <Button
@@ -811,6 +852,25 @@ const Bazi = () => {
                       </p>
                     </Card>
                   )}
+                </div>
+              )}
+
+              {showDerivation && !isLoadingReading && (
+                <div className="mt-6">
+                  <DerivationProcess
+                    baziRecordId={recordId}
+                    baziData={result}
+                    onJumpToVisualization={(chartType) => {
+                      setShowDerivation(false);
+                      setShowVisualization(true);
+                      // 滚动到对应图表
+                      setTimeout(() => {
+                        if (chartType === 'wuxing' && wuxingChartRef.current) {
+                          wuxingChartRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                      }, 300);
+                    }}
+                  />
                 </div>
               )}
 
