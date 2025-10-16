@@ -24,6 +24,18 @@ export const LUNAR_DAYS = [
   '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'
 ];
 
+// 将农历月份名称转换为数字
+export function lunarMonthNameToNumber(name: string): number {
+  const index = LUNAR_MONTHS.indexOf(name);
+  return index >= 0 ? index + 1 : 1;
+}
+
+// 将农历日期名称转换为数字
+export function lunarDayNameToNumber(name: string): number {
+  const index = LUNAR_DAYS.indexOf(name);
+  return index >= 0 ? index + 1 : 1;
+}
+
 // 简化的农历数据表（1900-2100年）
 // 每年数据：[春节公历月, 春节公历日, 农历月天数信息, 闰月]
 const LUNAR_DATA: { [key: number]: [number, number, number[], number] } = {

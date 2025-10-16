@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Sparkles, ArrowLeft, Calendar as CalendarIcon } from "lucide-react";
 import { z } from "zod";
 import { REGIONS, getRegionByValue } from "@/lib/regions";
-import { CalendarType, formatDate, correctDate, isValidSolarDate, isValidLunarDate, solarToLunar, lunarToSolar } from "@/lib/calendar";
+import { CalendarType, formatDate, correctDate, isValidSolarDate, isValidLunarDate, solarToLunar, lunarToSolar, LUNAR_MONTHS, LUNAR_DAYS, lunarMonthNameToNumber, lunarDayNameToNumber } from "@/lib/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const baziInputSchema = z.object({
@@ -40,6 +40,8 @@ const Bazi = () => {
   const [year, setYear] = useState("");
   const [month, setMonth] = useState("");
   const [day, setDay] = useState("");
+  const [lunarMonth, setLunarMonth] = useState("正月");
+  const [lunarDay, setLunarDay] = useState("初一");
   const [hour, setHour] = useState("");
   const [minute, setMinute] = useState("0");
   const [region, setRegion] = useState("beijing");
@@ -74,11 +76,15 @@ const Bazi = () => {
     e.preventDefault();
     
     let solarYear = parseInt(year);
-    let solarMonth = parseInt(month);
-    let solarDay = parseInt(day);
+    let solarMonth: number;
+    let solarDay: number;
     
     // 历法验证与转换
     if (calendarType === 'lunar') {
+      // 将农历名称转换为数字
+      solarMonth = lunarMonthNameToNumber(lunarMonth);
+      solarDay = lunarDayNameToNumber(lunarDay);
+      
       // 验证农历日期
       if (!isValidLunarDate(solarYear, solarMonth, solarDay)) {
         const corrected = correctDate(solarYear, solarMonth, solarDay, 'lunar');
@@ -95,6 +101,10 @@ const Bazi = () => {
       solarMonth = solarDate.month;
       solarDay = solarDate.day;
     } else {
+      // 公历日期直接使用
+      solarMonth = parseInt(month);
+      solarDay = parseInt(day);
+      
       // 验证公历日期
       if (!isValidSolarDate(solarYear, solarMonth, solarDay)) {
         toast({
@@ -272,17 +282,32 @@ const Bazi = () => {
                     <Label htmlFor="month" className="text-sm">
                       {calendarType === 'solar' ? '月份' : '农历月份'}
                     </Label>
-                    <Input
-                      id="month"
-                      type="number"
-                      placeholder="1-12"
-                      value={month}
-                      onChange={(e) => setMonth(e.target.value)}
-                      required
-                      min="1"
-                      max="12"
-                      className="text-base"
-                    />
+                    {calendarType === 'solar' ? (
+                      <Input
+                        id="month"
+                        type="number"
+                        placeholder="1-12"
+                        value={month}
+                        onChange={(e) => setMonth(e.target.value)}
+                        required
+                        min="1"
+                        max="12"
+                        className="text-base"
+                      />
+                    ) : (
+                      <Select value={lunarMonth} onValueChange={setLunarMonth}>
+                        <SelectTrigger className="text-base bg-background">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          {LUNAR_MONTHS.map((m) => (
+                            <SelectItem key={m} value={m} className="text-base">
+                              {m}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                 </div>
 
@@ -291,17 +316,32 @@ const Bazi = () => {
                     <Label htmlFor="day" className="text-sm">
                       {calendarType === 'solar' ? '日期' : '农历日期'}
                     </Label>
-                    <Input
-                      id="day"
-                      type="number"
-                      placeholder={calendarType === 'solar' ? '1-31' : '如：15'}
-                      value={day}
-                      onChange={(e) => setDay(e.target.value)}
-                      required
-                      min="1"
-                      max="31"
-                      className="text-base"
-                    />
+                    {calendarType === 'solar' ? (
+                      <Input
+                        id="day"
+                        type="number"
+                        placeholder="1-31"
+                        value={day}
+                        onChange={(e) => setDay(e.target.value)}
+                        required
+                        min="1"
+                        max="31"
+                        className="text-base"
+                      />
+                    ) : (
+                      <Select value={lunarDay} onValueChange={setLunarDay}>
+                        <SelectTrigger className="text-base bg-background">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px] bg-background z-50">
+                          {LUNAR_DAYS.map((d) => (
+                            <SelectItem key={d} value={d} className="text-base">
+                              {d}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="region" className="text-sm">出生地区</Label>
