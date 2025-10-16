@@ -15,6 +15,9 @@ const DIZHI_WUXING = ['水', '土', '木', '木', '土', '火', '火', '土', '�
 // 十神
 const SHISHEN = ['比肩', '劫财', '食神', '伤官', '偏财', '正财', '七杀', '正官', '偏印', '正印'];
 
+// 农历月份名称（用于显示）
+const LUNAR_MONTHS = ['正月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '冬月', '腊月'];
+
 // 2024-2025年节气数据（基于北京时间，精确到分钟）
 // 数据来源：中国科学院紫金山天文台
 interface SolarTermTime {
@@ -132,24 +135,26 @@ function getYearGanZhi(date: Date): string {
 }
 
 // 获取节气月份（核心：寅月始于立春、卯月始于惊蛰...）
-function getSolarTermMonth(date: Date): { index: number; name: string; termName: string } | null {
+// 返回：index是地支索引(0-11)，name是地支名称（用于月柱），lunarName是农历月份名称（用于显示），termName是节气名称
+function getSolarTermMonth(date: Date): { index: number; name: string; lunarName: string; termName: string } | null {
   const year = date.getFullYear();
   const dateTime = date.getTime();
   
   // 十二月令对应节气（从寅月立春开始）
+  // 寅月对应正月，卯月对应二月，...，子月对应十一月（冬月），丑月对应十二月（腊月）
   const monthInfo = [
-    { zhi: '寅', term: '立春', termIndex: 0 },   // 寅月：立春-惊蛰
-    { zhi: '卯', term: '惊蛰', termIndex: 2 },   // 卯月：惊蛰-清明
-    { zhi: '辰', term: '清明', termIndex: 4 },   // 辰月：清明-立夏
-    { zhi: '巳', term: '立夏', termIndex: 6 },   // 巳月：立夏-芒种
-    { zhi: '午', term: '芒种', termIndex: 8 },   // 午月：芒种-小暑
-    { zhi: '未', term: '小暑', termIndex: 10 },  // 未月：小暑-立秋
-    { zhi: '申', term: '立秋', termIndex: 12 },  // 申月：立秋-白露
-    { zhi: '酉', term: '白露', termIndex: 14 },  // 酉月：白露-寒露
-    { zhi: '戌', term: '寒露', termIndex: 16 },  // 戌月：寒露-立冬
-    { zhi: '亥', term: '立冬', termIndex: 18 },  // 亥月：立冬-大雪
-    { zhi: '子', term: '大雪', termIndex: 20 },  // 子月：大雪-小寒
-    { zhi: '丑', term: '小寒', termIndex: 22 }   // 丑月：小寒-立春
+    { zhi: '寅', lunar: '正月', term: '立春', termIndex: 0 },   // 寅月：立春-惊蛰
+    { zhi: '卯', lunar: '二月', term: '惊蛰', termIndex: 2 },   // 卯月：惊蛰-清明
+    { zhi: '辰', lunar: '三月', term: '清明', termIndex: 4 },   // 辰月：清明-立夏
+    { zhi: '巳', lunar: '四月', term: '立夏', termIndex: 6 },   // 巳月：立夏-芒种
+    { zhi: '午', lunar: '五月', term: '芒种', termIndex: 8 },   // 午月：芒种-小暑
+    { zhi: '未', lunar: '六月', term: '小暑', termIndex: 10 },  // 未月：小暑-立秋
+    { zhi: '申', lunar: '七月', term: '立秋', termIndex: 12 },  // 申月：立秋-白露
+    { zhi: '酉', lunar: '八月', term: '白露', termIndex: 14 },  // 酉月：白露-寒露
+    { zhi: '戌', lunar: '九月', term: '寒露', termIndex: 16 },  // 戌月：寒露-立冬
+    { zhi: '亥', lunar: '十月', term: '立冬', termIndex: 18 },  // 亥月：立冬-大雪
+    { zhi: '子', lunar: '冬月', term: '大雪', termIndex: 20 },  // 子月：大雪-小寒
+    { zhi: '丑', lunar: '腊月', term: '小寒', termIndex: 22 }   // 丑月：小寒-立春
   ];
   
   const currentYearTerms = SOLAR_TERMS_DATA[year];
@@ -163,6 +168,7 @@ function getSolarTermMonth(date: Date): { index: number; name: string; termName:
     return { 
       index: approximateIndex, 
       name: monthInfo[approximateIndex].zhi,
+      lunarName: monthInfo[approximateIndex].lunar,
       termName: monthInfo[approximateIndex].term
     };
   }
@@ -207,6 +213,7 @@ function getSolarTermMonth(date: Date): { index: number; name: string; termName:
       return { 
         index: i, 
         name: currentMonthInfo.zhi,
+        lunarName: currentMonthInfo.lunar,
         termName: currentMonthInfo.term
       };
     }
@@ -573,9 +580,10 @@ serve(async (req) => {
       yongshen,
       calculationDetails: {
         solarTermInfo: monthInfo ? {
-          month: monthInfo.name + '月',
+          month: monthInfo.lunarName,
+          zhiMonth: monthInfo.name + '月',
           term: monthInfo.termName,
-          description: `月柱地支【${monthInfo.name}】基于节气【${monthInfo.termName}】确定，符合《三命通会》节气月令规则`
+          description: `农历${monthInfo.lunarName}（${monthInfo.name}月）基于节气【${monthInfo.termName}】确定，符合《三命通会》节气月令规则`
         } : undefined,
         lichunInfo: {
           baziYear: baziYear,
