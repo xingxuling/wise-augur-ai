@@ -300,8 +300,10 @@ function getMonthGanZhi(date: Date): string {
   return TIANGAN[ganIndex] + monthInfo.name;
 }
 
-// 计算日柱（蔡勒公式优化版，基于1900年1月1日甲戌日）
+// 计算日柱（基于1900年1月1日为丙子日的精确算法）
+// 注意：1900年1月1日（庚子年腊月十一）的干支为丙子日，而非甲戌日
 function getDayGanZhi(year: number, month: number, day: number): string {
+  // 基准日期：1900年1月1日 = 丙子日（丙=2, 子=0）
   const baseYear = 1900;
   const baseMonth = 1;
   const baseDay = 1;
@@ -322,9 +324,9 @@ function getDayGanZhi(year: number, month: number, day: number): string {
   // 累计日期
   totalDays += day - baseDay;
   
-  // 1900年1月1日是甲戌日：甲=0, 戌=10
-  const ganIndex = (0 + totalDays) % 10;
-  const zhiIndex = (10 + totalDays) % 12;
+  // 1900年1月1日是丙子日：丙=2, 子=0
+  const ganIndex = (2 + totalDays) % 10;
+  const zhiIndex = (0 + totalDays) % 12;
   
   return TIANGAN[ganIndex] + DIZHI[zhiIndex];
 }
@@ -342,8 +344,10 @@ function getDaysInMonth(year: number, month: number): number {
 }
 
 // 计算时柱（五子遁元 + 子时分界规则）
-// 关键：23:00-00:59属于次日子时，需用次日日干起时柱
-// 注意：午时是11:00-12:59（传统上13:00前都算午时）
+// 关键：23:00-23:59属于次日子时，需用次日日干起时柱
+// 时辰标准划分：子(23-1)、丑(1-3)、寅(3-5)、卯(5-7)、辰(7-9)、巳(9-11)
+//             午(11-13)、未(13-15)、申(15-17)、酉(17-19)、戌(19-21)、亥(21-23)
+// 注意：部分命理流派对时辰边界有不同理解，本算法采用标准划分（整点为界）
 // 口诀：甲己还加甲、乙庚丙作初、丙辛从戊起、丁壬庚子居、戊癸何方发、壬子是真途
 function getHourGanZhi(
   year: number, 
@@ -381,8 +385,8 @@ function getHourGanZhi(
   // 计算时辰地支（23:00后按子时，即0时）
   let actualHour = isNextDayZiShi ? 0 : hour;
   
-  // 时辰对应：23-1子、1-3丑、3-5寅、5-7卯、7-9辰、9-11巳、11-13午、13-15未、15-17申、17-19酉、19-21戌、21-23亥
-  // 注意：传统上午时算到12:59，所以13:00才是未时
+  // 时辰地支索引计算：每2小时一个时辰
+  // 23-1点=子时(0), 1-3点=丑时(1), ..., 11-13点=午时(6), 13-15点=未时(7), ...
   const hourZhiIndex = Math.floor((actualHour + 1) / 2) % 12;
   
   // 五子遁元：子时天干 = (dayGanIndex % 5) * 2
@@ -728,10 +732,10 @@ serve(async (req) => {
         '【算法说明】本排盘严格遵循传统命理规则：',
         `1. 年柱：以立春节气为界（${baziYear}年立春时刻为准）`,
         '2. 月柱：以节气为界（寅月始于立春、卯月始于惊蛰...）',
-        '3. 日柱：基于1900年1月1日甲戌日精确计算天数差',
-        '4. 时柱：23:00-23:59属次日子时，使用五子遁元法（甲己日起甲子时...）',
+        '3. 日柱：基于1900年1月1日丙子日精确计算天数差',
+        '4. 时柱：23:00-23:59属次日子时，整点为时辰分界，使用五子遁元法',
         `5. 真太阳时：已根据${region}地区经度修正${Math.abs(trueSolarCorrection)}分钟`,
-        '数据来源：中国科学院紫金山天文台节气数据（2024-2025）'
+        '数据来源：中国科学院紫金山天文台节气数据'
       ].join('\n')
     };
 
