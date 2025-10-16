@@ -343,7 +343,7 @@ ${patternInfo}
     }
 
     // 记录AI使用次数
-    const { error: usageError } = await supabase
+    const { error: recordError } = await supabase
       .from('ai_usage_records')
       .insert({
         user_id: userIdToUse,
@@ -351,8 +351,8 @@ ${patternInfo}
         bazi_record_id: baziRecordId,
       });
 
-    if (usageError) {
-      console.error('记录使用次数失败:', usageError);
+    if (recordError) {
+      console.error('记录使用次数失败:', recordError);
     }
 
     return new Response(
