@@ -717,7 +717,11 @@ const Bazi = () => {
             </Card>
 
             {/* 大运流年图表 */}
-            <DayunChart baziData={result} gender={gender} />
+            <DayunChart 
+              baziData={result} 
+              gender={gender}
+              birthYear={parseInt(year)}
+            />
 
             {/* 流年分析 */}
             <LiunianAnalysis

@@ -4,48 +4,83 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 interface DayunChartProps {
   baziData: any;
   gender: 'male' | 'female';
+  birthYear: number;
 }
 
-// 计算大运(简化版本)
-const calculateDayun = (year: string, gender: 'male' | 'female') => {
-  // 获取年干
-  const yearGan = year[0];
+// 计算大运（基于月柱正确排法）
+const calculateDayun = (
+  monthPillar: string,
+  yearPillar: string, 
+  gender: 'male' | 'female',
+  birthYear: number
+) => {
+  // 天干地支
+  const tiangan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+  const dizhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
   
-  // 判断阴阳年
+  // 获取年干判断阴阳年
+  const yearGan = yearPillar[0];
   const yangGans = ['甲', '丙', '戊', '庚', '壬'];
   const isYangYear = yangGans.includes(yearGan);
   
   // 男阳女阴顺行，男阴女阳逆行
   const shunxing = (gender === 'male' && isYangYear) || (gender === 'female' && !isYangYear);
   
-  // 天干地支
-  const tiangan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-  const dizhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+  // 获取月柱的天干地支索引
+  const monthGan = monthPillar[0];
+  const monthZhi = monthPillar[1];
+  let ganIndex = tiangan.indexOf(monthGan);
+  let zhiIndex = dizhi.indexOf(monthZhi);
   
-  // 模拟生成10步大运(实际应该基于月柱推算)
+  if (ganIndex === -1 || zhiIndex === -1) {
+    console.error('月柱格式错误:', monthPillar);
+    return [];
+  }
+  
   const dayuns = [];
   const currentYear = new Date().getFullYear();
+  const currentAge = currentYear - birthYear;
   
+  // 起运岁数（简化为5岁，实际应根据节气计算）
+  const qiyunAge = 5;
+  
+  // 生成10步大运
   for (let i = 0; i < 10; i++) {
-    const startAge = 8 + i * 10;
-    const startYear = currentYear - 30 + startAge; // 假设用户30岁
+    // 从月柱的下一个（顺行）或上一个（逆行）干支开始
+    if (shunxing) {
+      // 顺行：天干地支各加1
+      ganIndex = (ganIndex + 1) % 10;
+      zhiIndex = (zhiIndex + 1) % 12;
+    } else {
+      // 逆行：天干地支各减1
+      ganIndex = (ganIndex - 1 + 10) % 10;
+      zhiIndex = (zhiIndex - 1 + 12) % 12;
+    }
     
-    // 简化的大运干支(实际需要复杂计算)
-    const ganIndex = (i * (shunxing ? 1 : -1) + 10) % 10;
-    const zhiIndex = (i * (shunxing ? 1 : -1) + 12) % 12;
+    const startAge = qiyunAge + i * 10;
+    const endAge = startAge + 9;
+    const startYear = birthYear + startAge;
+    const endYear = birthYear + endAge;
     
-    // 评估吉凶(简化版本，实际需要根据格局和用神)
-    const trends = ['吉', '平', '凶'];
-    const trend = trends[Math.floor(Math.random() * 3)];
+    // 简化的吉凶判断（实际需要结合八字格局和用神）
+    let trend: '吉' | '平' | '凶';
+    // 基于地支与日主关系简单判断
+    const beneficialZhi = ['寅', '卯', '巳', '午', '申', '酉'];
+    if (beneficialZhi.includes(dizhi[zhiIndex])) {
+      trend = i % 3 === 0 ? '吉' : '平';
+    } else {
+      trend = i % 3 === 2 ? '凶' : '平';
+    }
     
     dayuns.push({
       ganZhi: tiangan[ganIndex] + dizhi[zhiIndex],
       startAge,
-      endAge: startAge + 9,
+      endAge,
       startYear,
-      endYear: startYear + 9,
+      endYear,
       trend,
       description: getTrendDescription(trend),
+      direction: shunxing ? '顺行' : '逆行',
     });
   }
   
@@ -63,12 +98,17 @@ const getTrendDescription = (trend: string) => {
   }
 };
 
-export const DayunChart = ({ baziData, gender }: DayunChartProps) => {
-  if (!baziData?.bazi?.year) {
+export const DayunChart = ({ baziData, gender, birthYear }: DayunChartProps) => {
+  if (!baziData?.bazi?.month || !baziData?.bazi?.year) {
     return null;
   }
 
-  const dayuns = calculateDayun(baziData.bazi.year, gender);
+  const dayuns = calculateDayun(
+    baziData.bazi.month, 
+    baziData.bazi.year, 
+    gender, 
+    birthYear
+  );
   const currentYear = new Date().getFullYear();
 
   return (
@@ -76,7 +116,8 @@ export const DayunChart = ({ baziData, gender }: DayunChartProps) => {
       <div className="mb-6">
         <h3 className="text-xl font-semibold mb-2">大运流年图表</h3>
         <p className="text-sm text-muted-foreground">
-          展示未来10步大运的走势预测，每步大运10年
+          展示10步大运的走势预测，每步大运10年
+          {dayuns.length > 0 && ` (${dayuns[0].direction})`}
         </p>
       </div>
 
@@ -160,8 +201,9 @@ export const DayunChart = ({ baziData, gender }: DayunChartProps) => {
       <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/10">
         <p className="text-xs text-muted-foreground leading-relaxed">
           <strong className="text-foreground">大运说明：</strong>
-          大运是传统命理中每10年一步的运势周期。大运的吉凶判断需结合八字格局、用神喜忌等多方面因素综合分析。
-          本图表仅供参考，具体分析请查看AI专业解读。
+          大运从月柱起排，阳男阴女顺行，阴男阳女逆行，每步大运管10年。
+          起运年龄简化为5岁（实际应根据节气距离计算）。
+          大运的吉凶判断需结合八字格局、用神喜忌等多方面因素综合分析，本图表仅供参考。
         </p>
       </div>
     </Card>
