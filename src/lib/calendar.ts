@@ -1,5 +1,6 @@
 // 公历农历转换工具（基于《三命通会》节气规则）
 // 精准万年历实现，支持1900-2100年节气计算
+import { Lunar, Solar } from 'lunar-javascript';
 
 // 天干地支
 export const TIANGAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
@@ -213,8 +214,6 @@ export function isValidLunarDate(year: number, month: number, day: number, isLea
  */
 export function solarToLunar(year: number, month: number, day: number): DateInfo {
   try {
-    // 动态导入lunar-javascript
-    const { Lunar, Solar } = require('lunar-javascript');
     const solar = Solar.fromYmd(year, month, day);
     const lunar = solar.getLunar();
     
@@ -246,8 +245,6 @@ export function solarToLunar(year: number, month: number, day: number): DateInfo
  */
 export function lunarToSolar(year: number, month: number, day: number, isLeap: boolean = false): DateInfo {
   try {
-    // 动态导入lunar-javascript
-    const { Lunar } = require('lunar-javascript');
     const lunar = Lunar.fromYmd(year, month, day);
     const solar = lunar.getSolar();
     
