@@ -49,6 +49,38 @@ export type Database = {
           },
         ]
       }
+      ai_usage_records: {
+        Row: {
+          bazi_record_id: string | null
+          created_at: string
+          id: string
+          usage_type: string
+          user_id: string
+        }
+        Insert: {
+          bazi_record_id?: string | null
+          created_at?: string
+          id?: string
+          usage_type?: string
+          user_id: string
+        }
+        Update: {
+          bazi_record_id?: string | null
+          created_at?: string
+          id?: string
+          usage_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_records_bazi_record_id_fkey"
+            columns: ["bazi_record_id"]
+            isOneToOne: false
+            referencedRelation: "bazi_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bazi_records: {
         Row: {
           birth_day: number
@@ -84,6 +116,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      liunian_analyses: {
+        Row: {
+          analysis: Json
+          bazi_record_id: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          analysis: Json
+          bazi_record_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          analysis?: Json
+          bazi_record_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "liunian_analyses_bazi_record_id_fkey"
+            columns: ["bazi_record_id"]
+            isOneToOne: false
+            referencedRelation: "bazi_records"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment_records: {
         Row: {

@@ -14,9 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EnhancedReadingDisplay } from "@/components/reading/EnhancedReadingDisplay";
 import { ReadingHistory } from "@/components/reading/ReadingHistory";
 import { DayunChart } from "@/components/reading/DayunChart";
+import { LiunianAnalysis } from "@/components/reading/LiunianAnalysis";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { MembershipBadge } from "@/components/MembershipBadge";
 import { useMembership } from "@/hooks/useMembership";
+import { useAIUsage } from "@/hooks/useAIUsage";
 
 const baziInputSchema = z.object({
   year: z.number().min(1900).max(2100),
@@ -59,7 +61,8 @@ const Bazi = () => {
   const [showProfessional, setShowProfessional] = useState(false);
   const [activeReadingTab, setActiveReadingTab] = useState<string>("basic");
   const readingContentRef = useRef<HTMLDivElement>(null);
-  const { membership, hasFeature } = useMembership();
+  const { membership, hasFeature, canUseAI } = useMembership();
+  const { usageCount, recordUsage } = useAIUsage();
 
   useEffect(() => {
     // 检查用户是否已登录
@@ -188,14 +191,27 @@ const Bazi = () => {
   const handleAiReading = async (type: string) => {
     if (!recordId) return;
 
+    // 检查AI使用次数
+    if (!canUseAI(usageCount)) {
+      toast({
+        title: '使用次数已达上限',
+        description: `您本月的AI解读次数已用完，请升级会员或等待下月重置`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsLoadingReading(true);
     setAiReading("");
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase.functions.invoke('ai-reading', {
         body: {
           baziRecordId: recordId,
           readingType: type,
+          userId: user?.id,
         },
       });
 
@@ -206,6 +222,9 @@ const Bazi = () => {
       }
 
       setAiReading(data.reading);
+      
+      // 记录使用成功后，刷新使用次数
+      await recordUsage(recordId);
     } catch (error) {
       console.error('AI解读错误:', error);
       toast({
@@ -699,6 +718,13 @@ const Bazi = () => {
 
             {/* 大运流年图表 */}
             <DayunChart baziData={result} gender={gender} />
+
+            {/* 流年分析 */}
+            <LiunianAnalysis
+              baziRecordId={recordId}
+              birthYear={parseInt(year)}
+              baziData={result}
+            />
 
               <Button
                 variant="outline"

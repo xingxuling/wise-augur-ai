@@ -29,7 +29,7 @@ serve(async (req) => {
       throw new Error('用户未登录');
     }
 
-    const { baziRecordId, readingType } = await req.json();
+    const { baziRecordId, readingType, userId } = await req.json();
 
     if (!baziRecordId || !readingType) {
       throw new Error('缺少必要参数');
@@ -238,10 +238,11 @@ ${patternInfo}
     }
 
     // 保存解读记录
+    const userIdToUse = userId || user.id;
     const { error: saveError } = await supabase
       .from('ai_readings')
       .insert({
-        user_id: user.id,
+        user_id: userIdToUse,
         bazi_record_id: baziRecordId,
         reading_type: readingType,
         content: reading,
@@ -249,6 +250,19 @@ ${patternInfo}
 
     if (saveError) {
       console.error('保存解读失败:', saveError);
+    }
+
+    // 记录AI使用次数
+    const { error: usageError } = await supabase
+      .from('ai_usage_records')
+      .insert({
+        user_id: userIdToUse,
+        usage_type: 'ai_reading',
+        bazi_record_id: baziRecordId,
+      });
+
+    if (usageError) {
+      console.error('记录使用次数失败:', usageError);
     }
 
     return new Response(

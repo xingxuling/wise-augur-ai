@@ -114,11 +114,18 @@ export const useMembership = () => {
     return false;
   };
 
+  const canUseAI = (currentUsage: number) => {
+    if (!membership) return false;
+    const limit = MEMBERSHIP_FEATURES[membership.tier].aiReadings;
+    return limit === -1 || currentUsage < limit;
+  };
+
   return {
     membership,
     loading,
     hasFeature,
     canUseFeature,
+    canUseAI,
     refetch: fetchMembership,
   };
 };
