@@ -28,6 +28,32 @@ interface SolarTermTime {
 }
 
 const SOLAR_TERMS_DATA: { [key: number]: SolarTermTime[] } = {
+  1940: [
+    { month: 2, day: 5, hour: 7, minute: 8 }, // 立春
+    { month: 2, day: 20, hour: 3, minute: 4 }, // 雨水
+    { month: 3, day: 6, hour: 1, minute: 24 }, // 惊蛰
+    { month: 3, day: 21, hour: 2, minute: 24 }, // 春分
+    { month: 4, day: 5, hour: 6, minute: 35 }, // 清明
+    { month: 4, day: 20, hour: 13, minute: 51 }, // 谷雨
+    { month: 5, day: 6, hour: 0, minute: 16 }, // 立夏
+    { month: 5, day: 21, hour: 13, minute: 23 }, // 小满
+    { month: 6, day: 6, hour: 4, minute: 44 }, // 芒种
+    { month: 6, day: 21, hour: 21, minute: 36 }, // 夏至
+    { month: 7, day: 7, hour: 15, minute: 8 }, // 小暑
+    { month: 7, day: 23, hour: 8, minute: 34 }, // 大暑
+    { month: 8, day: 8, hour: 0, minute: 51 }, // 立秋
+    { month: 8, day: 23, hour: 15, minute: 29 }, // 处暑
+    { month: 9, day: 8, hour: 3, minute: 29 }, // 白露
+    { month: 9, day: 23, hour: 12, minute: 46 }, // 秋分
+    { month: 10, day: 8, hour: 18, minute: 42 }, // 寒露
+    { month: 10, day: 23, hour: 21, minute: 39 }, // 霜降
+    { month: 11, day: 7, hour: 21, minute: 27 }, // 立冬
+    { month: 11, day: 22, hour: 18, minute: 49 }, // 小雪
+    { month: 12, day: 7, hour: 13, minute: 58 }, // 大雪
+    { month: 12, day: 22, hour: 7, minute: 55 }, // 冬至
+    { month: 1, day: 6, hour: 1, minute: 4 }, // 小寒（次年1941）
+    { month: 1, day: 20, hour: 18, minute: 34 } // 大寒（次年1941）
+  ],
   2002: [
     { month: 2, day: 4, hour: 14, minute: 24 }, // 立春
     { month: 2, day: 19, hour: 1, minute: 14 }, // 雨水
@@ -300,10 +326,9 @@ function getMonthGanZhi(date: Date): string {
   return TIANGAN[ganIndex] + monthInfo.name;
 }
 
-// 计算日柱（基于1900年1月1日为丙子日的精确算法）
-// 注意：1900年1月1日（庚子年腊月十一）的干支为丙子日，而非甲戌日
+// 计算日柱（基于1900年1月1日为甲戌日的精确算法）
 function getDayGanZhi(year: number, month: number, day: number): string {
-  // 基准日期：1900年1月1日 = 丙子日（丙=2, 子=0）
+  // 基准日期：1900年1月1日 = 甲戌日（甲=0, 戌=10）
   const baseYear = 1900;
   const baseMonth = 1;
   const baseDay = 1;
@@ -324,9 +349,9 @@ function getDayGanZhi(year: number, month: number, day: number): string {
   // 累计日期
   totalDays += day - baseDay;
   
-  // 1900年1月1日是丙子日：丙=2, 子=0
-  const ganIndex = (2 + totalDays) % 10;
-  const zhiIndex = (0 + totalDays) % 12;
+  // 1900年1月1日是甲戌日：甲=0, 戌=10
+  const ganIndex = (0 + totalDays) % 10;
+  const zhiIndex = (10 + totalDays) % 12;
   
   return TIANGAN[ganIndex] + DIZHI[zhiIndex];
 }
@@ -731,8 +756,8 @@ serve(async (req) => {
       algorithmNote: [
         '【算法说明】本排盘严格遵循传统命理规则：',
         `1. 年柱：以立春节气为界（${baziYear}年立春时刻为准）`,
-        '2. 月柱：以节气为界（寅月始于立春、卯月始于惊蛰...）',
-        '3. 日柱：基于1900年1月1日丙子日精确计算天数差',
+        '2. 月柱：以节气为界（寅月始于立春、卯月始于惊蛰...子月始于大雪、丑月始于小寒）',
+        '3. 日柱：基于1900年1月1日甲戌日精确计算天数差',
         '4. 时柱：23:00-23:59属次日子时，整点为时辰分界，使用五子遁元法',
         `5. 真太阳时：已根据${region}地区经度修正${Math.abs(trueSolarCorrection)}分钟`,
         '数据来源：中国科学院紫金山天文台节气数据'
