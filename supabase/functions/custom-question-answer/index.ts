@@ -41,6 +41,39 @@ serve(async (req) => {
       throw new Error("问题不存在");
     }
 
+    // 速率限制检查：防止API滥用
+    const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
+    const { data: recentUsage, error: usageError } = await supabase
+      .from('ai_usage_records')
+      .select('created_at')
+      .eq('user_id', question.bazi_record.user_id)
+      .gte('created_at', oneMinuteAgo);
+
+    if (usageError) {
+      console.error('检查使用记录失败:', usageError);
+    }
+
+    // 获取用户会员等级
+    const { data: membershipData } = await supabase
+      .from('user_memberships')
+      .select('tier')
+      .eq('user_id', question.bazi_record.user_id)
+      .single();
+    
+    const membershipTier = membershipData?.tier || 'free';
+
+    // 根据会员等级设置速率限制
+    const rateLimits: Record<string, number> = {
+      free: 3,
+      basic: 5,
+      premium: 10
+    };
+    const limit = rateLimits[membershipTier] || rateLimits.free;
+
+    if (recentUsage && recentUsage.length >= limit) {
+      throw new Error(`速率限制：${membershipTier}会员每分钟最多${limit}次AI解读请求，请稍后再试`);
+    }
+
     // 获取八字数据
     const baziData = question.bazi_record.result;
 

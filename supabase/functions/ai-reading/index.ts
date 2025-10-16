@@ -101,6 +101,30 @@ serve(async (req) => {
       throw new Error('AI服务未配置');
     }
 
+    // 速率限制检查：防止API滥用
+    const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
+    const { data: recentUsage, error: usageError } = await supabase
+      .from('ai_usage_records')
+      .select('created_at')
+      .eq('user_id', user.id)
+      .gte('created_at', oneMinuteAgo);
+
+    if (usageError) {
+      console.error('检查使用记录失败:', usageError);
+    }
+
+    // 根据会员等级设置速率限制
+    const rateLimits: Record<string, number> = {
+      free: 3,
+      basic: 5,
+      premium: 10
+    };
+    const limit = rateLimits[membershipTier] || rateLimits.free;
+
+    if (recentUsage && recentUsage.length >= limit) {
+      throw new Error(`速率限制：${membershipTier}会员每分钟最多${limit}次AI解读请求，请稍后再试`);
+    }
+
     // 构建典籍引用部分
     let classicReferences = '';
     if (classicTexts && classicTexts.length > 0) {
