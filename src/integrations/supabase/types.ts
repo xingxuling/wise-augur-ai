@@ -265,6 +265,8 @@ export type Database = {
           created_at: string
           id: string
           question: string
+          scene_category: string | null
+          scene_type: string | null
           status: string
           updated_at: string
           user_id: string
@@ -276,6 +278,8 @@ export type Database = {
           created_at?: string
           id?: string
           question: string
+          scene_category?: string | null
+          scene_type?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -287,6 +291,8 @@ export type Database = {
           created_at?: string
           id?: string
           question?: string
+          scene_category?: string | null
+          scene_type?: string | null
           status?: string
           updated_at?: string
           user_id?: string
@@ -297,6 +303,133 @@ export type Database = {
             columns: ["bazi_record_id"]
             isOneToOne: false
             referencedRelation: "bazi_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_courses: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_published: boolean
+          level: string
+          order_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          is_published?: boolean
+          level: string
+          order_index: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_published?: boolean
+          level?: string
+          order_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      learning_lessons: {
+        Row: {
+          case_refs: string[] | null
+          classic_text_refs: string[] | null
+          content: string
+          course_id: string
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          media_type: string
+          media_url: string | null
+          order_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          case_refs?: string[] | null
+          classic_text_refs?: string[] | null
+          content: string
+          course_id: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          media_type: string
+          media_url?: string | null
+          order_index: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          case_refs?: string[] | null
+          classic_text_refs?: string[] | null
+          content?: string
+          course_id?: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          media_type?: string
+          media_url?: string | null
+          order_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "learning_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_quizzes: {
+        Row: {
+          correct_answer: string
+          created_at: string
+          explanation: string | null
+          id: string
+          lesson_id: string
+          options: Json
+          order_index: number
+          question: string
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          lesson_id: string
+          options: Json
+          order_index: number
+          question: string
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          lesson_id?: string
+          options?: Json
+          order_index?: number
+          question?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_quizzes_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "learning_lessons"
             referencedColumns: ["id"]
           },
         ]
@@ -554,6 +687,83 @@ export type Database = {
           },
         ]
       }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          max_uses: number | null
+          updated_at: string
+          user_id: string
+          uses_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          updated_at?: string
+          user_id: string
+          uses_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          updated_at?: string
+          user_id?: string
+          uses_count?: number
+        }
+        Relationships: []
+      }
+      referral_rewards: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code_id: string
+          referred_user_id: string
+          referrer_id: string
+          reward_count: number
+          reward_type: string
+          updated_at: string
+          used_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code_id: string
+          referred_user_id: string
+          referrer_id: string
+          reward_count?: number
+          reward_type: string
+          updated_at?: string
+          used_count?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code_id?: string
+          referred_user_id?: string
+          referrer_id?: string
+          reward_count?: number
+          reward_type?: string
+          updated_at?: string
+          used_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_rewards_referral_code_id_fkey"
+            columns: ["referral_code_id"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           auto_renew: boolean | null
@@ -595,6 +805,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_learning_progress: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          id: string
+          last_position: number | null
+          lesson_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_position?: number | null
+          lesson_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_position?: number | null
+          lesson_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_learning_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "learning_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_memberships: {
         Row: {
@@ -655,6 +906,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_quiz_results: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          is_correct: boolean
+          quiz_id: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          is_correct: boolean
+          quiz_id: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          quiz_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_quiz_results_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
