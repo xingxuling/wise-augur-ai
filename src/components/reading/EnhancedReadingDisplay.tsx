@@ -6,6 +6,10 @@ import { ReadingBookmark } from './ReadingBookmark';
 import { ReadingFeedback } from './ReadingFeedback';
 import { ReadingExport } from './ReadingExport';
 import { ShareReading } from './ShareReading';
+import { ClassicReferences } from './ClassicReferences';
+import { CaseReferences } from './CaseReferences';
+import { supabase } from '@/integrations/supabase/client';
+import { useMembership } from '@/hooks/useMembership';
 
 interface EnhancedReadingDisplayProps {
   content: string;
@@ -22,14 +26,73 @@ export const EnhancedReadingDisplay = ({
 }: EnhancedReadingDisplayProps) => {
   const [expanded, setExpanded] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
+  const [classicTexts, setClassicTexts] = useState<any[]>([]);
+  const [similarCases, setSimilarCases] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
   const [contentHeight, setContentHeight] = useState(0);
+  const { membership } = useMembership();
 
   useEffect(() => {
     if (contentRef.current) {
       setContentHeight(contentRef.current.scrollHeight);
     }
   }, [content]);
+
+  useEffect(() => {
+    const fetchReferences = async () => {
+      try {
+        setLoading(true);
+        
+        // 提取格局类型
+        const patternType = baziData?.pattern?.pattern || '普通格局';
+        
+        // 根据解读类型确定场景标签
+        let scenarioTags: string[] = [];
+        if (readingType === 'career') {
+          scenarioTags = ['职场'];
+        } else if (readingType === 'love') {
+          scenarioTags = ['感情'];
+        } else if (readingType === 'wealth') {
+          scenarioTags = ['财运', '创业'];
+        }
+
+        // 获取经典典籍引用
+        const textsLimit = membership?.tier === 'free' ? 1 : 2;
+        const { data: texts } = await supabase
+          .from('classic_texts')
+          .select('*')
+          .or(`keyword.ilike.%${patternType}%,keyword.ilike.%格局%`)
+          .limit(textsLimit);
+        
+        if (texts) setClassicTexts(texts);
+
+        // 获取匹配案例
+        const casesLimit = membership?.tier === 'free' ? 1 : (membership?.tier === 'basic' ? 2 : 3);
+        let casesQuery = supabase
+          .from('bazi_cases')
+          .select('*')
+          .eq('is_verified', true)
+          .eq('pattern_type', patternType);
+        
+        if (scenarioTags.length > 0) {
+          casesQuery = casesQuery.overlaps('scenario_tags', scenarioTags);
+        }
+        
+        const { data: cases } = await casesQuery
+          .order('helpful_votes', { ascending: false })
+          .limit(casesLimit);
+        
+        if (cases) setSimilarCases(cases);
+      } catch (error) {
+        console.error('获取参考资料失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReferences();
+  }, [baziData, readingType, membership]);
 
   const needsExpansion = contentHeight > 400;
   const displayContent = needsExpansion && !expanded 
@@ -137,6 +200,21 @@ export const EnhancedReadingDisplay = ({
               </>
             )}
           </Button>
+        </div>
+      )}
+
+      {/* Classic References and Case Studies */}
+      {!loading && (
+        <div className="mt-6 space-y-4">
+          {classicTexts.length > 0 && (
+            <ClassicReferences texts={classicTexts} />
+          )}
+          {similarCases.length > 0 && (
+            <CaseReferences 
+              cases={similarCases} 
+              membershipTier={membership?.tier}
+            />
+          )}
         </div>
       )}
 

@@ -81,6 +81,72 @@ export type Database = {
           },
         ]
       }
+      bazi_cases: {
+        Row: {
+          age_range: string
+          bazi_data: Json
+          case_code: string
+          consultation_question: string
+          created_at: string | null
+          feedback_time: string | null
+          gender: string
+          helpful_votes: number | null
+          id: string
+          identity: string
+          is_verified: boolean | null
+          pattern_type: string
+          region: string
+          scenario_tags: string[]
+          system_reading: string
+          unhelpful_votes: number | null
+          updated_at: string | null
+          user_feedback: string | null
+          wuxing_analysis: Json | null
+        }
+        Insert: {
+          age_range: string
+          bazi_data: Json
+          case_code: string
+          consultation_question: string
+          created_at?: string | null
+          feedback_time?: string | null
+          gender: string
+          helpful_votes?: number | null
+          id?: string
+          identity: string
+          is_verified?: boolean | null
+          pattern_type: string
+          region: string
+          scenario_tags: string[]
+          system_reading: string
+          unhelpful_votes?: number | null
+          updated_at?: string | null
+          user_feedback?: string | null
+          wuxing_analysis?: Json | null
+        }
+        Update: {
+          age_range?: string
+          bazi_data?: Json
+          case_code?: string
+          consultation_question?: string
+          created_at?: string | null
+          feedback_time?: string | null
+          gender?: string
+          helpful_votes?: number | null
+          id?: string
+          identity?: string
+          is_verified?: boolean | null
+          pattern_type?: string
+          region?: string
+          scenario_tags?: string[]
+          system_reading?: string
+          unhelpful_votes?: number | null
+          updated_at?: string | null
+          user_feedback?: string | null
+          wuxing_analysis?: Json | null
+        }
+        Relationships: []
+      }
       bazi_records: {
         Row: {
           birth_day: number
@@ -114,6 +180,80 @@ export type Database = {
           id?: string
           result?: Json
           user_id?: string
+        }
+        Relationships: []
+      }
+      case_feedbacks: {
+        Row: {
+          case_id: string
+          created_at: string | null
+          feedback_note: string | null
+          id: string
+          is_helpful: boolean
+          user_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string | null
+          feedback_note?: string | null
+          id?: string
+          is_helpful: boolean
+          user_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string | null
+          feedback_note?: string | null
+          id?: string
+          is_helpful?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_feedbacks_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "bazi_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classic_texts: {
+        Row: {
+          application_scenario: string
+          book_author: string | null
+          book_name: string
+          chapter: string | null
+          created_at: string | null
+          id: string
+          keyword: string
+          modern_interpretation: string
+          original_text: string
+          updated_at: string | null
+        }
+        Insert: {
+          application_scenario: string
+          book_author?: string | null
+          book_name: string
+          chapter?: string | null
+          created_at?: string | null
+          id?: string
+          keyword: string
+          modern_interpretation: string
+          original_text: string
+          updated_at?: string | null
+        }
+        Update: {
+          application_scenario?: string
+          book_author?: string | null
+          book_name?: string
+          chapter?: string | null
+          created_at?: string | null
+          id?: string
+          keyword?: string
+          modern_interpretation?: string
+          original_text?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

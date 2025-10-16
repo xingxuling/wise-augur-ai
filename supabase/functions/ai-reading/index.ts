@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,6 +35,15 @@ serve(async (req) => {
       throw new Error('缺少必要参数');
     }
 
+    // 获取用户会员等级
+    const { data: membershipData } = await supabase
+      .from('user_memberships')
+      .select('tier')
+      .eq('user_id', user.id)
+      .single();
+    
+    const membershipTier = membershipData?.tier || 'free';
+
     // 获取八字记录
     const { data: baziRecord, error: fetchError } = await supabase
       .from('bazi_records')
@@ -47,13 +56,77 @@ serve(async (req) => {
       throw new Error('八字记录不存在');
     }
 
+    // 提取格局类型以匹配典籍和案例
+    const baziInfo = baziRecord.result;
+    const patternType = baziInfo.pattern?.pattern || '普通格局';
+    
+    // 根据解读类型确定场景标签
+    let scenarioTags: string[] = [];
+    if (readingType === 'career') {
+      scenarioTags = ['职场'];
+    } else if (readingType === 'love') {
+      scenarioTags = ['感情'];
+    } else if (readingType === 'health') {
+      scenarioTags = ['健康'];
+    } else if (readingType === 'wealth') {
+      scenarioTags = ['财运', '创业'];
+    }
+
+    // 获取相关经典典籍引用
+    const textsLimit = membershipTier === 'free' ? 1 : 2;
+    const { data: classicTexts } = await supabase
+      .from('classic_texts')
+      .select('*')
+      .or(`keyword.ilike.%${patternType}%,keyword.ilike.%格局%`)
+      .limit(textsLimit);
+
+    // 获取匹配的案例
+    const casesLimit = membershipTier === 'free' ? 1 : (membershipTier === 'basic' ? 2 : 3);
+    let casesQuery = supabase
+      .from('bazi_cases')
+      .select('*')
+      .eq('is_verified', true)
+      .eq('pattern_type', patternType);
+    
+    if (scenarioTags.length > 0) {
+      casesQuery = casesQuery.overlaps('scenario_tags', scenarioTags);
+    }
+    
+    const { data: similarCases } = await casesQuery
+      .order('helpful_votes', { ascending: false })
+      .limit(casesLimit);
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('AI服务未配置');
     }
 
+    // 构建典籍引用部分
+    let classicReferences = '';
+    if (classicTexts && classicTexts.length > 0) {
+      classicReferences = '\n\n【经典依据】\n' + classicTexts.map((text: any) => 
+        `《${text.book_name}·${text.chapter}》云："${text.original_text}"
+现代解读：${text.modern_interpretation}`
+      ).join('\n\n');
+    }
+
+    // 构建案例参考部分
+    let caseReferences = '';
+    if (similarCases && similarCases.length > 0) {
+      caseReferences = '\n\n【类似案例参考】\n' + similarCases.map((c: any, index: number) => {
+        const feedbackInfo = c.user_feedback 
+          ? `\n用户反馈：${c.user_feedback}（反馈时间：${new Date(c.feedback_time).toLocaleDateString('zh-CN')}）`
+          : '';
+        
+        return `案例${index + 1}（${c.case_code}）：
+基本信息：${c.gender}，${c.age_range}，${c.region}，${c.identity}
+咨询问题：${c.consultation_question}
+系统解读：${c.system_reading}${feedbackInfo}
+投票：${c.helpful_votes}人认为有用`;
+      }).join('\n\n');
+    }
+
     // 构建提示词
-    const baziInfo = baziRecord.result;
     const readingTypeMap: Record<string, string> = {
       career: '事业运势',
       love: '感情运势',
@@ -69,29 +142,31 @@ serve(async (req) => {
 
 核心原则：
 1. 基于传统命理体系进行专业分析（特殊格局、用神、十神配置等）
-2. 禁用封建迷信表述（如"克妻/克夫"改为"家庭关系需注重沟通调和"）
+2. **必须引用经典典籍作为依据**，使用"据《典籍名》"的格式
 3. 结合古籍依据，但避免绝对化表述（禁用"必定/绝对/一定"）
 4. 提供建设性建议，注重实际应用价值
 5. 所有解读末尾必须标注"以上解读仅供参考，人生走向取决于自身选择与努力"
 
+**已为您准备的典籍资料：**${classicReferences}
+
+**已为您准备的同类案例：**${caseReferences}
+
 专业维度要求：
-- 特殊格局识别：优先识别专旺格（曲直、炎上、稼穑、从革、润下）、从格（从财、从官杀、从印、从食伤）、化气格、魁罡格、日贵格等12类特殊格局
-- 格局判断：详细分析格局成败、纯杂，引用相关经典依据
+- 特殊格局识别：优先识别专旺格、从格、化气格、魁罡格、日贵格等特殊格局
+- 格局判断：详细分析格局成败、纯杂，**引用相关经典依据**
 - 用神选取：结合月令、四柱组合判断扶抑用神/调候用神，说明用神喜忌
 - 十神组合：分析十神互动逻辑，避免孤立解读
 - 场景适配：针对事业、感情、健康提供命理适配建议，注重实用性
-
-格局解读要点：
-- 专旺格：需顺势而为，不宜克泄，适合专注深耕某一领域
-- 从格：需顺从全局之势，切忌逆势而行，适合依附强者发展
-- 化气格：需保护化神，避免破化，适合以化神五行为主的行业
-- 魁罡格：性格刚强，需注意人际沟通，适合决策性岗位
-- 日贵格：贵人运佳，适合依靠人脉发展
+- **案例参考**：自然融入同类案例作为参考，增强解读可信度
 
 解读要求：
 - 白话表述：避免过多术语堆砌，用通俗语言解释命理含义
 - 场景化：将命理特征转化为具体的职场、感情、健康建议
-- 案例参考：可适当引用历史人物八字作为参考（需标注"仅供参考"）`;
+- 引用经典：在关键判断处引用典籍原文，格式为"据《典籍名·章节》：'原文'"
+- 参考案例：适当提及同类案例的经验，格式为"参考案例显示..."
+- 保持客观：不做过度夸张的预言，所有建议需可操作
+
+请在解读中自然融入以上典籍引用和案例参考，增强解读的专业性和可信度。`;
 
     let userPrompt = '';
     
@@ -116,8 +191,8 @@ ${baziInfo.lackingWuxing?.length > 0 ? `缺少五行：${baziInfo.lackingWuxing.
 
 真太阳时修正说明：${baziInfo.trueSolarTime?.note || '未修正'}
 
-请提供基础层解读（250-350字）：
-1. 四柱基本含义与格局特征（重点说明特殊格局的核心特质）
+请提供基础层解读（250-350字），**必须引用准备的典籍**：
+1. 四柱基本含义与格局特征（引用典籍说明格局核心特质）
 2. 五行旺衰特点与格局的关联
 3. 日主强弱说明与用神喜忌
 4. 真太阳时修正的影响
@@ -135,10 +210,10 @@ ${patternInfo}
 用神：${baziInfo.yongshen?.yongshen || '待判断'}
 日主强弱：${baziInfo.dayMasterStrength || '待判断'}
 
-请提供专业层解读（400-600字），包含：
+请提供专业层解读（400-600字），**必须引用准备的典籍和案例**：
 1. 格局判断：
    - 详细分析格局成败、纯杂程度
-   - 引用古籍依据（如《三命通会》《滴天髓》相关论述）
+   - **引用古籍依据**（使用准备的典籍资料）
    - 说明格局对命运的影响机制
    ${baziInfo.pattern?.isSpecial ? '- 特别说明特殊格局的喜忌与成格条件' : ''}
    
@@ -152,10 +227,7 @@ ${patternInfo}
    - 指出关键配置与命局亮点
    - 说明十神组合对性格与能力的塑造
    
-4. 大运流年：
-   - 说明当前大运走向（${baziInfo.dayun?.direction || ''}运）
-   - 提示流年需注意的方面
-   ${baziInfo.pattern?.isSpecial ? '- 结合格局特点分析大运吉凶' : ''}`;
+4. **参考案例**：结合准备的同类案例，说明类似格局的实际发展情况`;
     } else if (readingType === 'scenario') {
       userPrompt = `【场景建议】
 八字四柱：
@@ -168,28 +240,22 @@ ${patternInfo}
 
 用神：${baziInfo.yongshen?.yongshen || '待判断'}
 
-请针对事业、感情、健康三大场景提供命理适配建议（350-500字），结合格局特点：
+请针对事业、感情、健康三大场景提供命理适配建议（350-500字），**结合典籍和案例**：
 
 1. 事业发展：
-   ${baziInfo.pattern?.isSpecial ? `- 基于${baziInfo.pattern.pattern}的特点，分析适合的行业与发展模式` : '- 适合的行业类型与职业发展方向'}
+   ${baziInfo.pattern?.isSpecial ? `- 基于${baziInfo.pattern.pattern}的特点，分析适合的行业与发展模式（引用典籍和案例）` : '- 适合的行业类型与职业发展方向'}
    - 职场优势与需要注意的问题
    - 团队协作模式建议（领导/辅助/独立）
-   ${baziInfo.pattern?.pattern?.includes('专旺格') ? '- 专旺格适合专注深耕，不宜频繁跨界' : ''}
-   ${baziInfo.pattern?.pattern?.includes('从格') ? '- 从格适合依附强者，跟随核心人物发展' : ''}
    
 2. 感情经营：
    - 情感特质与相处模式
    - 对伴侣的期望与适配类型
    - 关系经营建议与沟通要点
-   ${baziInfo.pattern?.pattern?.includes('魁罡格') ? '- 魁罡格性格直率，需注意沟通方式，避免过于强势' : ''}
-   ${baziInfo.pattern?.pattern?.includes('日贵格') ? '- 日贵格贵人缘佳，感情多因长辈/朋友介绍' : ''}
    
 3. 健康养生：
    - 需关注的健康方面（基于五行旺衰）
    - 养生建议与日常调理
-   - 季节性注意事项
-   ${baziInfo.pattern?.pattern?.includes('炎上格') ? '- 炎上格火旺，注意心脑血管，避免上火' : ''}
-   ${baziInfo.pattern?.pattern?.includes('润下格') ? '- 润下格水旺，注意肾脏与生殖系统' : ''}`;
+   - 季节性注意事项`;
     } else {
       // 原有的单项解读
       userPrompt = `【${readingTypeMap[readingType]}专项解读】
@@ -204,7 +270,7 @@ ${patternInfo}
 五行分析：${JSON.stringify(baziInfo.wuxingAnalysis)}
 用神：${baziInfo.yongshen?.yongshen || '待判断'}
 
-请针对${readingTypeMap[readingType]}进行专业解读（250-350字），结合格局、用神、十神配置分析，特别关注格局特点对此方面的影响。`;
+请针对${readingTypeMap[readingType]}进行专业解读（250-350字），**引用典籍和案例**，结合格局、用神、十神配置分析。`;
     }
 
     // 调用Lovable AI
@@ -266,7 +332,12 @@ ${patternInfo}
     }
 
     return new Response(
-      JSON.stringify({ success: true, reading }),
+      JSON.stringify({ 
+        success: true, 
+        reading,
+        classicTexts: classicTexts || [],
+        similarCases: similarCases || []
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
