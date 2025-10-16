@@ -11,8 +11,9 @@ import { z } from "zod";
 import { REGIONS, getRegionByValue } from "@/lib/regions";
 import { CalendarType, formatDate, correctDate, isValidSolarDate, isValidLunarDate, solarToLunar, lunarToSolar, LUNAR_MONTHS, LUNAR_DAYS, lunarMonthNameToNumber, lunarDayNameToNumber } from "@/lib/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BaziTestCase } from "@/components/BaziTestCase";
 import { EnhancedReadingDisplay } from "@/components/reading/EnhancedReadingDisplay";
+import { ReadingHistory } from "@/components/reading/ReadingHistory";
+import { DayunChart } from "@/components/reading/DayunChart";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { MembershipBadge } from "@/components/MembershipBadge";
 import { useMembership } from "@/hooks/useMembership";
@@ -230,16 +231,24 @@ const Bazi = () => {
       <div className="container px-4 mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8">
-          <Button variant="ghost" onClick={() => navigate("/")} className="mb-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            返回首页
-          </Button>
+          <div className="flex items-center justify-between mb-4">
+            <Button variant="ghost" onClick={() => navigate("/")}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              返回首页
+            </Button>
+            <div className="flex items-center gap-3">
+              {!result && <ReadingHistory onSelectRecord={(record) => {
+                setResult(record.result);
+                setRecordId(record.id);
+                setGender(record.gender as "male" | "female");
+              }} />}
+              <MembershipBadge />
+              <LanguageSelector />
+            </div>
+          </div>
           <h1 className="text-4xl font-bold text-gradient mb-2">智能八字解析</h1>
           <p className="text-muted-foreground">输入您的出生信息，获取精准命理分析</p>
         </div>
-
-        {/* 测试案例展示 */}
-        <BaziTestCase />
 
         {/* Input Form */}
         {!result && (
@@ -687,6 +696,9 @@ const Bazi = () => {
                 </div>
               )}
             </Card>
+
+            {/* 大运流年图表 */}
+            <DayunChart baziData={result} gender={gender} />
 
               <Button
                 variant="outline"
