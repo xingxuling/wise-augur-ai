@@ -91,23 +91,39 @@ const Checkout = () => {
       const planInfo = PLAN_INFO[pendingSubscription.planType];
       const amount = planInfo.price[regionData.currency as keyof typeof planInfo.price];
 
-      // TODO: 集成实际支付网关
-      // 这里需要调用edge function处理支付
-      // 支持的选项：
-      // 1. Stripe（推荐）- 支持微信支付、支付宝等多种方式
-      // 2. 直接对接微信支付API（需要商户资质）
-      // 3. 直接对接支付宝API（需要商户资质）
+      // Stripe支付处理
+      if (selectedPayment === 'stripe' || selectedPayment === 'credit_card') {
+        const { data, error } = await supabase.functions.invoke('create-stripe-checkout', {
+          body: {
+            planType: pendingSubscription.planType,
+            region: pendingSubscription.region,
+            amount,
+            currency: regionData.currency,
+          },
+        });
 
-      toast({
-        title: "支付功能开发中",
-        description: `${planInfo.name} - ${regionData.displayCurrency}${amount}/月\n支付方式：${selectedPayment}\n\n实际支付需要集成支付网关（Stripe或微信/支付宝商户）`,
-      });
+        if (error) {
+          throw new Error(error.message || '创建支付会话失败');
+        }
 
-      // 模拟支付成功
-      setTimeout(() => {
-        localStorage.removeItem('pending_subscription');
-        navigate("/");
-      }, 2000);
+        if (data?.url) {
+          // 重定向到Stripe Checkout页面
+          window.location.href = data.url;
+          return;
+        }
+      } else {
+        // 本地支付方式（微信/支付宝/银联）
+        toast({
+          title: "本地支付功能开发中",
+          description: `${planInfo.name} - ${regionData.displayCurrency}${amount}/月\n支付方式：${selectedPayment}\n\n需要对接当地支付商户`,
+        });
+
+        // 模拟支付成功
+        setTimeout(() => {
+          localStorage.removeItem('pending_subscription');
+          navigate("/");
+        }, 2000);
+      }
 
     } catch (error) {
       console.error('支付处理错误:', error);

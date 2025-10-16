@@ -60,22 +60,38 @@ export const getRegionByValue = (value: string) => {
 // 支付方式配置（按地区）
 export const PAYMENT_METHODS = {
   CNY: [
-    { value: 'wechat', label: '微信支付', icon: '💬' },
-    { value: 'alipay', label: '支付宝', icon: '💳' },
-    { value: 'unionpay', label: '银联支付', icon: '🏦' },
+    { value: 'wechat', label: '微信支付', icon: '💚' },
+    { value: 'alipay', label: '支付宝', icon: '💙' },
+    { value: 'unionpay', label: '银联', icon: '🔴' },
+    { value: 'stripe', label: '信用卡/借记卡', icon: '💳' },
   ],
   HKD: [
-    { value: 'wechat_hk', label: '微信支付（港币）', icon: '💬' },
-    { value: 'alipay_hk', label: '支付宝（国际版）', icon: '💳' },
-    { value: 'unionpay', label: '银联卡', icon: '🏦' },
+    { value: 'stripe', label: 'Credit/Debit Card', icon: '💳' },
+    { value: 'wechat', label: 'WeChat Pay HK', icon: '💚' },
+    { value: 'alipay', label: 'Alipay HK', icon: '💙' },
+    { value: 'octopus', label: '八达通', icon: '🐙' },
   ],
   MOP: [
-    { value: 'wechat_mo', label: '微信支付（澳门元）', icon: '💬' },
-    { value: 'alipay_mo', label: '支付宝（国际版）', icon: '💳' },
-    { value: 'unionpay', label: '银联卡', icon: '🏦' },
+    { value: 'stripe', label: '信用卡/借记卡', icon: '💳' },
+    { value: 'wechat', label: '微信支付', icon: '💚' },
+    { value: 'alipay', label: '支付宝', icon: '💙' },
+    { value: 'mpay', label: 'MPay', icon: '💳' },
   ],
   TWD: [
-    { value: 'alipay_tw', label: '支付宝（台湾）', icon: '💳' },
-    { value: 'unionpay', label: '银联卡', icon: '🏦' },
+    { value: 'stripe', label: '信用卡/金融卡', icon: '💳' },
+    { value: 'line_pay', label: 'LINE Pay', icon: '💚' },
+    { value: 'jko_pay', label: '街口支付', icon: '🟠' },
+    { value: 'ecpay', label: '綠界支付', icon: '🟢' },
+  ],
+  USD: [
+    { value: 'stripe', label: 'Credit Card', icon: '💳' },
+    { value: 'paypal', label: 'PayPal', icon: '🅿️' },
+    { value: 'apple_pay', label: 'Apple Pay', icon: '🍎' },
+    { value: 'google_pay', label: 'Google Pay', icon: '🔵' },
+  ],
+  EUR: [
+    { value: 'stripe', label: 'Credit Card', icon: '💳' },
+    { value: 'paypal', label: 'PayPal', icon: '🅿️' },
+    { value: 'sepa', label: 'SEPA Direct Debit', icon: '🏦' },
   ],
 } as const;
