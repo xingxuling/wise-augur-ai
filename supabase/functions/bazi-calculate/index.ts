@@ -599,13 +599,207 @@ function checkJinshenPattern(bazi: { year: string; month: string; day: string; h
   return null;
 }
 
+// 判断井栏叉格（庚申、庚辰日柱，时柱也为庚申或庚辰）
+function checkJinglanchaPattern(bazi: { year: string; month: string; day: string; hour: string }):
+  { isPattern: true; name: string; condition: string; reference: string } | null {
+  const dayPillar = bazi.day;
+  const hourPillar = bazi.hour;
+  
+  if ((dayPillar === '庚申' || dayPillar === '庚辰') && 
+      (hourPillar === '庚申' || hourPillar === '庚辰')) {
+    return {
+      isPattern: true,
+      name: '井栏叉格',
+      condition: `日柱${dayPillar}，时柱${hourPillar}，形成井栏叉格，主才智过人，适合技术研究`,
+      reference: '《三命通会》："庚日庚时，两重庚申或庚辰，如井栏之交叉，主聪明有谋略"'
+    };
+  }
+  
+  return null;
+}
+
+// 判断天德贵人格/月德贵人格
+function checkTianyueerdePattern(bazi: { year: string; month: string; day: string; hour: string }):
+  { isPattern: true; name: string; condition: string; reference: string } | null {
+  const monthZhi = bazi.month[1];
+  const ganList = [bazi.year[0], bazi.month[0], bazi.day[0], bazi.hour[0]];
+  const zhiList = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
+  
+  // 天德贵人（按月支查天干）
+  const tiandeMaps: Record<string, string[]> = {
+    '子': ['丁'], '丑': ['申'], '寅': ['壬'], '卯': ['辛'],
+    '辰': ['亥'], '巳': ['甲'], '午': ['癸'], '未': ['寅'],
+    '申': ['乙'], '酉': ['戊'], '戌': ['丙'], '亥': ['己']
+  };
+  
+  // 月德贵人（按月支查天干/地支）
+  const yuedeMaps: Record<string, string[]> = {
+    '寅': ['丙'], '午': ['丙'], '戌': ['丙'],
+    '亥': ['甲'], '卯': ['甲'], '未': ['甲'],
+    '申': ['庚'], '子': ['庚'], '辰': ['庚'],
+    '巳': ['壬'], '酉': ['壬'], '丑': ['壬']
+  };
+  
+  const hasTiande = tiandeMaps[monthZhi]?.some(td => {
+    if (td.length === 1) return ganList.includes(td);
+    return zhiList.includes(td);
+  });
+  
+  const hasYuede = yuedeMaps[monthZhi]?.some(yd => ganList.includes(yd));
+  
+  if (hasTiande && hasYuede) {
+    return {
+      isPattern: true,
+      name: '天月二德格',
+      condition: `月支${monthZhi}，四柱有天德、月德贵人，一生多得贵人相助，逢凶化吉`,
+      reference: '《三命通会》："天月二德，乃天地德秀之气，命中有之，主性格仁慈，遇祸不凶"'
+    };
+  } else if (hasTiande) {
+    return {
+      isPattern: true,
+      name: '天德贵人格',
+      condition: `月支${monthZhi}，四柱有天德贵人，得天之庇佑，化险为夷`,
+      reference: '《三命通会》："天德者，天地造化之德，命中逢之，多福少祸"'
+    };
+  } else if (hasYuede) {
+    return {
+      isPattern: true,
+      name: '月德贵人格',
+      condition: `月支${monthZhi}，四柱有月德贵人，性情温和，贵人运佳`,
+      reference: '《三命通会》："月德者，三合之德，命中见之，多得人助"'
+    };
+  }
+  
+  return null;
+}
+
+// 判断三奇格（天上三奇：甲戊庚，地下三奇：乙丙丁，人中三奇：壬癸辛）
+function checkSanqiPattern(bazi: { year: string; month: string; day: string; hour: string }):
+  { isPattern: true; name: string; condition: string; reference: string } | null {
+  const ganList = [bazi.year[0], bazi.month[0], bazi.day[0], bazi.hour[0]];
+  
+  const hasTianshangSanqi = ['甲', '戊', '庚'].every(g => ganList.includes(g));
+  const hasDixiaSanqi = ['乙', '丙', '丁'].every(g => ganList.includes(g));
+  const hasRenzhongSanqi = ['壬', '癸', '辛'].every(g => ganList.includes(g));
+  
+  if (hasTianshangSanqi) {
+    return {
+      isPattern: true,
+      name: '三奇格（天上三奇）',
+      condition: '四柱天干有甲、戊、庚三奇，主文武兼备，事业有成',
+      reference: '《三命通会》："甲戊庚为天上三奇，主贵显，文武双全"'
+    };
+  } else if (hasDixiaSanqi) {
+    return {
+      isPattern: true,
+      name: '三奇格（地下三奇）',
+      condition: '四柱天干有乙、丙、丁三奇，主聪明秀丽，才华横溢',
+      reference: '《三命通会》："乙丙丁为地下三奇，主聪慧，多艺多才"'
+    };
+  } else if (hasRenzhongSanqi) {
+    return {
+      isPattern: true,
+      name: '三奇格（人中三奇）',
+      condition: '四柱天干有壬、癸、辛三奇，主智谋深远，善于权变',
+      reference: '《三命通会》："壬癸辛为人中三奇，主智慧过人，多谋善断"'
+    };
+  }
+  
+  return null;
+}
+
+// 判断羊刃格（日主强旺，地支见羊刃）
+function checkYanggrenPattern(bazi: { year: string; month: string; day: string; hour: string }, wuxingAnalysis: Record<string, number>):
+  { isPattern: true; name: string; condition: string; reference: string } | null {
+  const dayGan = bazi.day[0];
+  const zhiList = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
+  
+  // 羊刃对照表
+  const yangrenMaps: Record<string, string> = {
+    '甲': '卯', '乙': '寅', '丙': '午', '丁': '巳',
+    '戊': '午', '己': '巳', '庚': '酉', '辛': '申',
+    '壬': '子', '癸': '亥'
+  };
+  
+  const yangrenZhi = yangrenMaps[dayGan];
+  if (yangrenZhi && zhiList.includes(yangrenZhi)) {
+    const dayWuxing = WUXING[TIANGAN.indexOf(dayGan)];
+    const totalElements = Object.values(wuxingAnalysis).reduce((a, b) => a + b, 0);
+    const dayWuxingPercent = wuxingAnalysis[dayWuxing] / totalElements;
+    
+    // 羊刃格需要日主较旺
+    if (dayWuxingPercent >= 0.35) {
+      return {
+        isPattern: true,
+        name: '羊刃格',
+        condition: `${dayGan}日主，地支见${yangrenZhi}（羊刃），日主强旺，性格刚毅果断，需制化得宜`,
+        reference: '《三命通会》："羊刃者，劫财之神，日主旺而见之，主性格刚强，勇猛果断"'
+      };
+    }
+  }
+  
+  return null;
+}
+
+// 判断建禄格（月支为日主禄神）
+function checkJianluPattern(bazi: { year: string; month: string; day: string; hour: string }):
+  { isPattern: true; name: string; condition: string; reference: string } | null {
+  const dayGan = bazi.day[0];
+  const monthZhi = bazi.month[1];
+  
+  // 禄神对照表（地支见日主的临官位）
+  const luMaps: Record<string, string> = {
+    '甲': '寅', '乙': '卯', '丙': '巳', '丁': '午',
+    '戊': '巳', '己': '午', '庚': '申', '辛': '酉',
+    '壬': '亥', '癸': '子'
+  };
+  
+  if (luMaps[dayGan] === monthZhi) {
+    return {
+      isPattern: true,
+      name: '建禄格',
+      condition: `${dayGan}日主，月支${monthZhi}为禄神，主身强体健，自力更生，适合靠技能立足`,
+      reference: '《三命通会》："建禄格者，月支为日主禄神，主身强力壮，自食其力，贵在独立"'
+    };
+  }
+  
+  return null;
+}
+
+// 判断两神成象格（两种五行极旺，形成对峙）
+function checkLiangshenPattern(bazi: { year: string; month: string; day: string; hour: string }, wuxingAnalysis: Record<string, number>):
+  { isPattern: true; name: string; condition: string; reference: string } | null {
+  const totalElements = Object.values(wuxingAnalysis).reduce((a, b) => a + b, 0);
+  const wuxingPercents = Object.entries(wuxingAnalysis)
+    .map(([wx, count]) => ({ wx, percent: count / totalElements }))
+    .filter(item => item.percent >= 0.3)
+    .sort((a, b) => b.percent - a.percent);
+  
+  // 两神成象：两种五行各占30%以上，其他五行极弱
+  if (wuxingPercents.length === 2) {
+    const [first, second] = wuxingPercents;
+    const totalPercent = first.percent + second.percent;
+    
+    if (totalPercent >= 0.75) {
+      return {
+        isPattern: true,
+        name: '两神成象格',
+        condition: `八字由${first.wx}（${(first.percent * 100).toFixed(0)}%）、${second.wx}（${(second.percent * 100).toFixed(0)}%）两种五行主导，其他五行微弱，格局纯正`,
+        reference: '《滴天髓》："两神成象，清而不浊，贵在专一，忌神搅局"'
+      };
+    }
+  }
+  
+  return null;
+}
+
 // 综合分析特殊格局
 function analyzeSpecialPatterns(bazi: { year: string; month: string; day: string; hour: string }, wuxingAnalysis: Record<string, number>):
   { specialPatterns: Array<{ name: string; condition: string; reference: string; isPrimary: boolean }>; hasSpecialPattern: boolean } {
   
   const patterns: Array<{ name: string; condition: string; reference: string; isPrimary: boolean }> = [];
   
-  // 按优先级检测格局（专旺格和从格互斥，优先专旺格）
+  // 第一优先级：专旺格和从格（互斥，优先专旺格）
   const zhuanwang = checkZhuanwangPattern(bazi, wuxingAnalysis);
   if (zhuanwang?.isPattern) {
     patterns.push({ ...zhuanwang, isPrimary: true });
@@ -616,28 +810,59 @@ function analyzeSpecialPatterns(bazi: { year: string; month: string; day: string
     }
   }
   
-  // 化气格（可与其他格局共存，但作为主格）
+  // 第二优先级：化气格（可与其他格局共存，但作为主格）
   const huaqi = checkHuaqiPattern(bazi, wuxingAnalysis);
   if (huaqi?.isPattern) {
     patterns.push({ ...huaqi, isPrimary: patterns.length === 0 });
   }
   
-  // 魁罡格（可与其他格局共存）
+  // 第三优先级：两神成象格
+  const liangshen = checkLiangshenPattern(bazi, wuxingAnalysis);
+  if (liangshen?.isPattern) {
+    patterns.push({ ...liangshen, isPrimary: patterns.length === 0 });
+  }
+  
+  // 第四优先级：日柱特殊格局（魁罡、日贵、金神、井栏叉）
   const kuigang = checkKuigangPattern(bazi);
   if (kuigang?.isPattern) {
     patterns.push({ ...kuigang, isPrimary: patterns.length === 0 });
   }
   
-  // 日贵格（可与其他格局共存）
   const rigui = checkRiguiPattern(bazi);
   if (rigui?.isPattern) {
     patterns.push({ ...rigui, isPrimary: patterns.length === 0 });
   }
   
-  // 金神格（可与其他格局共存）
   const jinshen = checkJinshenPattern(bazi);
   if (jinshen?.isPattern) {
     patterns.push({ ...jinshen, isPrimary: patterns.length === 0 });
+  }
+  
+  const jinglancha = checkJinglanchaPattern(bazi);
+  if (jinglancha?.isPattern) {
+    patterns.push({ ...jinglancha, isPrimary: patterns.length === 0 });
+  }
+  
+  // 第五优先级：建禄格、羊刃格（与日主强弱相关）
+  const jianlu = checkJianluPattern(bazi);
+  if (jianlu?.isPattern) {
+    patterns.push({ ...jianlu, isPrimary: patterns.length === 0 });
+  }
+  
+  const yanggren = checkYanggrenPattern(bazi, wuxingAnalysis);
+  if (yanggren?.isPattern) {
+    patterns.push({ ...yanggren, isPrimary: patterns.length === 0 });
+  }
+  
+  // 第六优先级：贵人格局（天月二德、三奇）
+  const tianyueerde = checkTianyueerdePattern(bazi);
+  if (tianyueerde?.isPattern) {
+    patterns.push({ ...tianyueerde, isPrimary: patterns.length === 0 });
+  }
+  
+  const sanqi = checkSanqiPattern(bazi);
+  if (sanqi?.isPattern) {
+    patterns.push({ ...sanqi, isPrimary: patterns.length === 0 });
   }
   
   return {

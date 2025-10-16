@@ -11,6 +11,7 @@ import { z } from "zod";
 import { REGIONS, getRegionByValue } from "@/lib/regions";
 import { CalendarType, formatDate, correctDate, isValidSolarDate, isValidLunarDate, solarToLunar, lunarToSolar, LUNAR_MONTHS, LUNAR_DAYS, lunarMonthNameToNumber, lunarDayNameToNumber } from "@/lib/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BaziTestCase } from "@/components/BaziTestCase";
 
 const baziInputSchema = z.object({
   year: z.number().min(1900).max(2100),
@@ -230,6 +231,9 @@ const Bazi = () => {
           <h1 className="text-4xl font-bold text-gradient mb-2">智能八字解析</h1>
           <p className="text-muted-foreground">输入您的出生信息，获取精准命理分析</p>
         </div>
+
+        {/* 测试案例展示 */}
+        <BaziTestCase />
 
         {/* Input Form */}
         {!result && (
