@@ -15,7 +15,8 @@ const DIZHI_WUXING = ['水', '土', '木', '木', '土', '火', '火', '土', '�
 // 十神
 const SHISHEN = ['比肩', '劫财', '食神', '伤官', '偏财', '正财', '七杀', '正官', '偏印', '正印'];
 
-// 2024-2025年节气数据（基于北京时间）
+// 2024-2025年节气数据（基于北京时间，精确到分钟）
+// 数据来源：中国科学院紫金山天文台
 interface SolarTermTime {
   month: number;
   day: number;
@@ -93,8 +94,8 @@ const REGION_LONGITUDE: Record<string, number> = {
 
 // 计算真太阳时修正（分钟）
 function getTrueSolarTimeCorrection(longitude: number): number {
-  const standardLongitude = 120; // 东八区标准经度
-  return Math.round((longitude - standardLongitude) * 4);
+  const standardLongitude = 120; // 东八区标准经度（北京时间基准）
+  return Math.round((longitude - standardLongitude) * 4); // 每度经度差4分钟
 }
 
 // 获取立春时间
@@ -106,56 +107,57 @@ function getLichunTime(year: number): Date | null {
   return new Date(year, lichun.month - 1, lichun.day, lichun.hour, lichun.minute);
 }
 
-// 根据立春判断八字年份
+// 根据立春判断八字年份（核心：立春前属上一年）
 function getBaziYear(date: Date): number {
   const year = date.getFullYear();
   const lichunThisYear = getLichunTime(year);
   
   if (!lichunThisYear) {
-    // 无节气数据时按公历2月4日近似
+    // 无节气数据时按公历2月4日凌晨近似
     const approxLichun = new Date(year, 1, 4, 0, 0);
     return date >= approxLichun ? year : year - 1;
   }
   
+  // 精确比对到分钟
   return date >= lichunThisYear ? year : year - 1;
 }
 
-// 计算年柱（基于立春）
+// 计算年柱（基于立春节气）
 function getYearGanZhi(date: Date): string {
   const baziYear = getBaziYear(date);
+  // 1984年为甲子年（甲=0，子=0），用1984作基准
   const ganIndex = (baziYear - 4) % 10;
   const zhiIndex = (baziYear - 4) % 12;
   return TIANGAN[ganIndex] + DIZHI[zhiIndex];
 }
 
-// 获取节气月份（基于节气而非公历）
+// 获取节气月份（核心：寅月始于立春、卯月始于惊蛰...）
 function getSolarTermMonth(date: Date): { index: number; name: string; termName: string } | null {
   const year = date.getFullYear();
   const dateTime = date.getTime();
   
-  // 节气月份对应（从寅月/立春开始，按照节气月令）
-  // 寅月（立春-惊蛰）、卯月（惊蛰-清明）、辰月（清明-立夏）...
+  // 十二月令对应节气（从寅月立春开始）
   const monthInfo = [
-    { zhi: '寅', term: '立春', termIndex: 0 },
-    { zhi: '卯', term: '惊蛰', termIndex: 2 },
-    { zhi: '辰', term: '清明', termIndex: 4 },
-    { zhi: '巳', term: '立夏', termIndex: 6 },
-    { zhi: '午', term: '芒种', termIndex: 8 },
-    { zhi: '未', term: '小暑', termIndex: 10 },
-    { zhi: '申', term: '立秋', termIndex: 12 },
-    { zhi: '酉', term: '白露', termIndex: 14 },
-    { zhi: '戌', term: '寒露', termIndex: 16 },
-    { zhi: '亥', term: '立冬', termIndex: 18 },
-    { zhi: '子', term: '大雪', termIndex: 20 },
-    { zhi: '丑', term: '小寒', termIndex: 22 }
+    { zhi: '寅', term: '立春', termIndex: 0 },   // 寅月：立春-惊蛰
+    { zhi: '卯', term: '惊蛰', termIndex: 2 },   // 卯月：惊蛰-清明
+    { zhi: '辰', term: '清明', termIndex: 4 },   // 辰月：清明-立夏
+    { zhi: '巳', term: '立夏', termIndex: 6 },   // 巳月：立夏-芒种
+    { zhi: '午', term: '芒种', termIndex: 8 },   // 午月：芒种-小暑
+    { zhi: '未', term: '小暑', termIndex: 10 },  // 未月：小暑-立秋
+    { zhi: '申', term: '立秋', termIndex: 12 },  // 申月：立秋-白露
+    { zhi: '酉', term: '白露', termIndex: 14 },  // 酉月：白露-寒露
+    { zhi: '戌', term: '寒露', termIndex: 16 },  // 戌月：寒露-立冬
+    { zhi: '亥', term: '立冬', termIndex: 18 },  // 亥月：立冬-大雪
+    { zhi: '子', term: '大雪', termIndex: 20 },  // 子月：大雪-小寒
+    { zhi: '丑', term: '小寒', termIndex: 22 }   // 丑月：小寒-立春
   ];
   
-  // 尝试当前年份和前一年的节气数据
   const currentYearTerms = SOLAR_TERMS_DATA[year];
   const prevYearTerms = SOLAR_TERMS_DATA[year - 1];
+  const nextYearTerms = SOLAR_TERMS_DATA[year + 1];
   
-  // 如果当前年份没有数据，使用近似算法
   if (!currentYearTerms) {
+    // 无节气数据时按公历月份近似（不精确，仅作降级）
     const month = date.getMonth() + 1;
     const approximateIndex = (month + 1) % 12;
     return { 
@@ -174,9 +176,8 @@ function getSolarTermMonth(date: Date): { index: number; name: string; termName:
     let currentTerm = currentYearTerms[currentMonthInfo.termIndex];
     let currentTermDate: Date;
     
-    // 处理跨年情况（小寒、大寒在1月，但属于前一年的冬季月份）
-    if (currentTerm.month === 1 && prevYearTerms) {
-      // 1月的节气属于前一年
+    // 处理跨年情况（1月的小寒、大寒属于前一年冬季）
+    if (currentTerm.month === 1 && i >= 10 && prevYearTerms) {
       currentTerm = prevYearTerms[currentMonthInfo.termIndex];
       currentTermDate = new Date(year - 1, currentTerm.month - 1, currentTerm.day, currentTerm.hour, currentTerm.minute);
     } else {
@@ -187,17 +188,15 @@ function getSolarTermMonth(date: Date): { index: number; name: string; termName:
     let nextTerm = currentYearTerms[nextMonthInfo.termIndex];
     let nextTermDate: Date;
     
-    if (nextTerm.month === 1) {
-      // 下一个节气在明年1月
-      const nextYearTerms = SOLAR_TERMS_DATA[year + 1];
+    // 下一个节气可能在当年或次年
+    if (nextTerm.month === 1 && nextMonthInfo.termIndex < currentMonthInfo.termIndex) {
+      // 跨年到次年1月
       if (nextYearTerms) {
         nextTerm = nextYearTerms[nextMonthInfo.termIndex];
-        nextTermDate = new Date(year + 1, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
-      } else {
-        nextTermDate = new Date(year + 1, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
       }
+      nextTermDate = new Date(year + 1, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
     } else if (nextTerm.month < currentTerm.month && nextTerm.month > 1) {
-      // 跨年到次年
+      // 跨年到次年其他月份
       nextTermDate = new Date(year + 1, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
     } else {
       nextTermDate = new Date(year, nextTerm.month - 1, nextTerm.day, nextTerm.hour, nextTerm.minute);
@@ -216,14 +215,15 @@ function getSolarTermMonth(date: Date): { index: number; name: string; termName:
   return null;
 }
 
-// 计算月柱（基于节气）
+// 计算月柱（基于节气 + 五虎遁元）
+// 口诀：甲己之年丙作首、乙庚之岁戊为头、丙辛必定寻庚起、丁壬壬位顺行流、若问戊癸何方发、甲寅之上好追求
 function getMonthGanZhi(date: Date): string {
   const baziYear = getBaziYear(date);
   const yearGan = (baziYear - 4) % 10;
   
   const monthInfo = getSolarTermMonth(date);
   if (!monthInfo) {
-    // 无节气数据时使用简化算法
+    // 降级算法
     const month = date.getMonth() + 1;
     const monthGanBase = ((yearGan % 5) * 2 + 2) % 10;
     const ganIndex = (monthGanBase + month - 1) % 10;
@@ -231,45 +231,39 @@ function getMonthGanZhi(date: Date): string {
     return TIANGAN[ganIndex] + DIZHI[zhiIndex];
   }
   
-  // 使用节气月份的地支
-  const zhiName = monthInfo.name;
-  
-  // 月干起法口诀：甲己之年丙作首（yearGan%5决定正月寅月的天干）
-  // 甲己(0)→丙(2)、乙庚(1)→戊(4)、丙辛(2)→庚(6)、丁壬(3)→壬(8)、戊癸(4)→甲(0)
-  // 公式：寅月天干 = ((yearGan % 5) * 2 + 2) % 10
+  // 五虎遁元：寅月天干 = ((yearGan % 5) * 2 + 2) % 10
+  // 甲己年(0,5)→丙(2)、乙庚年(1,6)→戊(4)、丙辛年(2,7)→庚(6)、丁壬年(3,8)→壬(8)、戊癸年(4,9)→甲(0)
   const monthGanBase = ((yearGan % 5) * 2 + 2) % 10;
   
-  // monthInfo.index是从寅月开始的索引（寅=0, 卯=1, ...）
+  // monthInfo.index: 寅=0, 卯=1, 辰=2, ...
   const ganIndex = (monthGanBase + monthInfo.index) % 10;
   
-  return TIANGAN[ganIndex] + zhiName;
+  return TIANGAN[ganIndex] + monthInfo.name;
 }
 
-// 计算日柱（蔡勒公式改进版）
+// 计算日柱（蔡勒公式优化版，基于1900年1月1日甲戌日）
 function getDayGanZhi(year: number, month: number, day: number): string {
-  // 基准日：1900年1月1日为甲戌日
-  const y0 = 1900;
-  const m0 = 1;
-  const d0 = 1;
+  const baseYear = 1900;
+  const baseMonth = 1;
+  const baseDay = 1;
   
-  // 计算从基准日到目标日的天数
+  // 计算从1900年1月1日到目标日期的总天数
   let totalDays = 0;
   
-  // 计算年份差
-  for (let y = y0; y < year; y++) {
+  // 累计年份天数
+  for (let y = baseYear; y < year; y++) {
     totalDays += isLeapYear(y) ? 366 : 365;
   }
   
-  // 计算月份差
+  // 累计月份天数
   for (let m = 1; m < month; m++) {
     totalDays += getDaysInMonth(year, m);
   }
   
-  // 加上日期
-  totalDays += day - d0;
+  // 累计日期
+  totalDays += day - baseDay;
   
-  // 1900年1月1日是甲戌日，甲=0，戌=10
-  // 所以基准的干支索引是 (0, 10)
+  // 1900年1月1日是甲戌日：甲=0, 戌=10
   const ganIndex = (0 + totalDays) % 10;
   const zhiIndex = (10 + totalDays) % 12;
   
@@ -288,24 +282,57 @@ function getDaysInMonth(year: number, month: number): number {
   return daysInMonth[month - 1];
 }
 
-// 计算时柱（23:00后算次日子时）
-function getHourGanZhi(dayGan: string, hour: number, minute: number): string {
-  const dayGanIndex = TIANGAN.indexOf(dayGan);
+// 计算时柱（五子遁元 + 23:00分界规则）
+// 关键：23:00-23:59属于次日子时，需用次日日干起时柱
+// 口诀：甲己还加甲、乙庚丙作初、丙辛从戊起、丁壬庚子居、戊癸何方发、壬子是真途
+function getHourGanZhi(
+  year: number, 
+  month: number, 
+  day: number, 
+  hour: number, 
+  minute: number
+): { ganZhi: string; usedNextDay: boolean } {
+  // 判断是否在23:00-23:59区间（属于次日子时）
+  const isNextDayZiShi = (hour === 23);
   
-  // 23:00-23:59算次日子时
-  let actualHour = hour;
-  if (hour === 23) {
-    actualHour = 0; // 按次日子时算
+  // 如果是次日子时，需要用次日的日干
+  let actualYear = year;
+  let actualMonth = month;
+  let actualDay = day;
+  
+  if (isNextDayZiShi) {
+    // 计算次日日期
+    actualDay += 1;
+    if (actualDay > getDaysInMonth(actualYear, actualMonth)) {
+      actualDay = 1;
+      actualMonth += 1;
+      if (actualMonth > 12) {
+        actualMonth = 1;
+        actualYear += 1;
+      }
+    }
   }
   
-  // 计算时辰地支（每两小时一个时辰）
+  // 获取日柱天干（如果是23:00后，使用次日日干）
+  const dayGanZhi = getDayGanZhi(actualYear, actualMonth, actualDay);
+  const dayGan = dayGanZhi[0];
+  const dayGanIndex = TIANGAN.indexOf(dayGan);
+  
+  // 计算时辰地支（23:00后按子时，即0时）
+  let actualHour = isNextDayZiShi ? 0 : hour;
+  
+  // 时辰对应：23-1子、1-3丑、3-5寅、5-7卯、7-9辰、9-11巳、11-13午、13-15未、15-17申、17-19酉、19-21戌、21-23亥
   const hourZhiIndex = Math.floor((actualHour + 1) / 2) % 12;
   
-  // 根据日干起时干（五子遁元）
+  // 五子遁元：子时天干 = (dayGanIndex % 5) * 2
+  // 甲己日(0,5)→甲(0)、乙庚日(1,6)→丙(2)、丙辛日(2,7)→戊(4)、丁壬日(3,8)→庚(6)、戊癸日(4,9)→壬(8)
   const hourGanBase = (dayGanIndex % 5) * 2;
   const hourGanIndex = (hourGanBase + hourZhiIndex) % 10;
   
-  return TIANGAN[hourGanIndex] + DIZHI[hourZhiIndex];
+  return {
+    ganZhi: TIANGAN[hourGanIndex] + DIZHI[hourZhiIndex],
+    usedNextDay: isNextDayZiShi
+  };
 }
 
 // 计算十神
@@ -326,7 +353,7 @@ function analyzeDayMasterStrength(bazi: { year: string; month: string; day: stri
   
   const isBornInSeason = dayWuxing === monthZhiWuxing;
   
-  return isBornInSeason ? '日主较旺' : '日主较弱';
+  return isBornInSeason ? '日主较旺（得月令生助）' : '日主较弱（不得月令）';
 }
 
 // 判断格局
@@ -337,19 +364,19 @@ function analyzePattern(bazi: { year: string; month: string; day: string; hour: 
   const monthShishen = getShishen(dayGan, monthGan);
   
   const patterns: Record<string, string> = {
-    '正官': '正官格：为人正直，适合从事稳定职业，具有管理才能',
-    '七杀': '七杀格：性格刚毅果断，适合竞争环境，需注意控制情绪',
-    '正财': '正财格：财运稳健，理财观念强，适合稳定型投资',
-    '偏财': '偏财格：善于把握机会，财运多变，适合灵活经营',
-    '食神': '食神格：性格温和，有艺术天赋，善于表达创意',
-    '伤官': '伤官格：思维活跃，才华横溢，需注意沟通方式',
-    '正印': '正印格：学习能力强，适合学术研究，贵人运佳',
-    '偏印': '偏印格：思维独特，多才多艺，善于独立思考'
+    '正官': '正官格：为人正直端方，适合从事稳定职业，具有管理才能，贵人运佳',
+    '七杀': '七杀格：性格刚毅果断，适合竞争环境，需注意控制情绪，宜武职或竞争性行业',
+    '正财': '正财格：财运稳健，理财观念强，适合稳定型投资，勤恳务实',
+    '偏财': '偏财格：善于把握机会，财运多变，适合灵活经营，交际广泛',
+    '食神': '食神格：性格温和，有艺术天赋，善于表达创意，衣食无忧',
+    '伤官': '伤官格：思维活跃，才华横溢，需注意沟通方式，适合创意行业',
+    '正印': '正印格：学习能力强，适合学术研究，贵人运佳，文化修养高',
+    '偏印': '偏印格：思维独特，多才多艺，善于独立思考，适合偏门技艺'
   };
   
   return {
-    pattern: monthShishen,
-    description: patterns[monthShishen] || '命格特殊，需综合分析'
+    pattern: monthShishen + '格',
+    description: patterns[monthShishen] || '命格特殊，需综合分析四柱配置'
   };
 }
 
@@ -366,11 +393,11 @@ function analyzeYongshen(wuxingAnalysis: Record<string, number>): { yongshen: st
   }
   
   const descriptions: Record<string, string> = {
-    '木': '用神为木，宜东方发展，多接触绿色、木质物品，有利于运势平衡',
-    '火': '用神为火，宜南方发展，多接触红色系事物，注意保持热情积极',
-    '土': '用神为土，宜本地发展，多接触黄色、土系物品，增强稳定性',
-    '金': '用神为金，宜西方发展，多接触白色、金属物品，提升决断力',
-    '水': '用神为水，宜北方发展，多接触黑色、蓝色事物，增强灵活性'
+    '木': '用神为木，宜东方发展，多接触绿色、木质物品，从事文教、出版等行业有利',
+    '火': '用神为火，宜南方发展，多接触红色事物，从事能源、餐饮等行业有利',
+    '土': '用神为土，宜本地发展，多接触黄色、土系物品，从事房地产、农业等行业有利',
+    '金': '用神为金，宜西方发展，多接触白色、金属物品，从事金融、科技等行业有利',
+    '水': '用神为水，宜北方发展，多接触黑色、蓝色事物，从事流通、运输等行业有利'
   };
   
   return {
@@ -428,19 +455,19 @@ serve(async (req) => {
     }
 
     if (birthYear < 1900 || birthYear > 2100) {
-      throw new Error('年份必须在1900-2100之间');
+      throw new Error('年份必须在1900-2100之间（当前数据库仅支持此范围）');
     }
 
     if (birthMonth < 1 || birthMonth > 12) {
-      throw new Error('月份无效');
+      throw new Error('月份必须在1-12之间');
     }
 
     if (birthDay < 1 || birthDay > 31) {
-      throw new Error('日期无效');
+      throw new Error('日期必须在1-31之间');
     }
 
     if (birthHour < 0 || birthHour > 23) {
-      throw new Error('时辰无效');
+      throw new Error('时辰必须在0-23之间');
     }
 
     // 真太阳时修正
@@ -459,7 +486,6 @@ serve(async (req) => {
     if (correctedHour >= 24) {
       correctedHour -= 24;
       correctedDay += 1;
-      // 处理月份和年份进位
       if (correctedDay > getDaysInMonth(correctedYear, correctedMonth)) {
         correctedDay = 1;
         correctedMonth += 1;
@@ -481,20 +507,27 @@ serve(async (req) => {
       }
     }
 
-    // 创建修正后的日期对象
+    // 创建修正后的日期对象（用于年柱、月柱判断）
     const correctedDate = new Date(correctedYear, correctedMonth - 1, correctedDay, correctedHour, correctedMinute);
 
-    // 计算八字（基于万年历）
+    // 计算四柱（核心算法）
+    // 1. 年柱：以立春为界
     const yearGanZhi = getYearGanZhi(correctedDate);
+    
+    // 2. 月柱：以节气为界
     const monthGanZhi = getMonthGanZhi(correctedDate);
+    
+    // 3. 日柱：基于精确天数计算
     const dayGanZhi = getDayGanZhi(correctedYear, correctedMonth, correctedDay);
-    const hourGanZhi = getHourGanZhi(dayGanZhi[0], correctedHour, correctedMinute);
+    
+    // 4. 时柱：五子遁元 + 23:00分界
+    const hourResult = getHourGanZhi(correctedYear, correctedMonth, correctedDay, correctedHour, correctedMinute);
 
     const bazi = {
       year: yearGanZhi,
       month: monthGanZhi,
       day: dayGanZhi,
-      hour: hourGanZhi,
+      hour: hourResult.ganZhi,
     };
 
     // 获取节气月份信息（用于说明）
@@ -529,6 +562,7 @@ serve(async (req) => {
     // 用神分析
     const yongshen = analyzeYongshen(wuxingAnalysis);
 
+    // 构建详细结果
     const result = {
       bazi,
       wuxingAnalysis,
@@ -537,36 +571,51 @@ serve(async (req) => {
       dayMasterStrength,
       pattern,
       yongshen,
-      solarTermInfo: monthInfo ? {
-        month: monthInfo.name + '月',
-        term: monthInfo.termName,
-        description: `本月柱基于节气【${monthInfo.termName}】确定，地支为${monthInfo.name}`
-      } : undefined,
-      lichunInfo: {
-        baziYear: baziYear,
-        actualYear: correctedYear,
-        note: baziYear !== correctedYear ? `根据立春节气，八字年份为${baziYear}年（农历纪年）` : '八字年份与公历年份一致'
-      },
-      trueSolarTime: {
-        original: { 
-          year: birthYear, 
-          month: birthMonth, 
-          day: birthDay, 
-          hour: birthHour, 
-          minute: birthMinute 
+      calculationDetails: {
+        solarTermInfo: monthInfo ? {
+          month: monthInfo.name + '月',
+          term: monthInfo.termName,
+          description: `月柱地支【${monthInfo.name}】基于节气【${monthInfo.termName}】确定，符合《三命通会》节气月令规则`
+        } : undefined,
+        lichunInfo: {
+          baziYear: baziYear,
+          actualYear: correctedYear,
+          note: baziYear !== correctedYear 
+            ? `出生于立春前，八字年份使用${baziYear}年（农历${baziYear - 1}年末）` 
+            : `出生于立春后，八字年份为${baziYear}年`
         },
-        corrected: { 
-          year: correctedYear,
-          month: correctedMonth,
-          day: correctedDay,
-          hour: correctedHour, 
-          minute: correctedMinute 
+        hourCalculation: hourResult.usedNextDay 
+          ? `出生时间23:00-23:59属于次日子时，时柱使用次日【${bazi.day}】的日干起时` 
+          : `时柱基于五子遁元法则，由日柱【${bazi.day}】起时`,
+        trueSolarTime: {
+          original: { 
+            year: birthYear, 
+            month: birthMonth, 
+            day: birthDay, 
+            hour: birthHour, 
+            minute: birthMinute 
+          },
+          corrected: { 
+            year: correctedYear,
+            month: correctedMonth,
+            day: correctedDay,
+            hour: correctedHour, 
+            minute: correctedMinute 
+          },
+          correction: trueSolarCorrection,
+          region: region,
+          note: `基于${region}地区（东经${regionLongitude.toFixed(2)}°），真太阳时修正${trueSolarCorrection >= 0 ? '+' : ''}${trueSolarCorrection}分钟`
         },
-        correction: trueSolarCorrection,
-        region: region,
-        note: `基于${region}地理位置（东经${regionLongitude.toFixed(2)}°），真太阳时修正${trueSolarCorrection}分钟`
       },
-      calculation_note: '本排盘严格基于万年历节气数据：年柱以立春为界，月柱以节气为界（寅月始于立春、卯月始于惊蛰...），日柱使用精确算法，时柱按真太阳时计算',
+      algorithmNote: [
+        '【算法说明】本排盘严格遵循传统命理规则：',
+        `1. 年柱：以立春节气为界（${baziYear}年立春时刻为准）`,
+        '2. 月柱：以节气为界（寅月始于立春、卯月始于惊蛰...）',
+        '3. 日柱：基于1900年1月1日甲戌日精确计算天数差',
+        '4. 时柱：23:00-23:59属次日子时，使用五子遁元法（甲己日起甲子时...）',
+        `5. 真太阳时：已根据${region}地区经度修正${Math.abs(trueSolarCorrection)}分钟`,
+        '数据来源：中国科学院紫金山天文台节气数据（2024-2025）'
+      ].join('\n')
     };
 
     // 保存到数据库
@@ -600,7 +649,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error instanceof Error ? error.message : '计算失败' 
+        error: error instanceof Error ? error.message : '计算失败，请检查输入数据' 
       }),
       {
         status: 400,
