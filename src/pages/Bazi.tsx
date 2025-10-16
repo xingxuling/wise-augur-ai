@@ -43,6 +43,7 @@ const Bazi = () => {
   const [hour, setHour] = useState("");
   const [minute, setMinute] = useState("0");
   const [region, setRegion] = useState("beijing");
+  const [gender, setGender] = useState<"male" | "female">("male");
   const [result, setResult] = useState<BaziResult | null>(null);
   const [recordId, setRecordId] = useState<string>("");
   const [aiReading, setAiReading] = useState<string>("");
@@ -136,6 +137,7 @@ const Bazi = () => {
           birthDay: solarDay,
           birthHour: parseInt(hour),
           birthMinute: parseInt(minute),
+          gender: gender,
           region: region, // 使用region代码而不是label
         },
       });
@@ -347,6 +349,19 @@ const Bazi = () => {
                       className="text-base"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gender" className="text-sm">性别</Label>
+                  <Select value={gender} onValueChange={(value) => setGender(value as "male" | "female")}>
+                    <SelectTrigger className="text-base bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="male" className="text-base">男</SelectItem>
+                      <SelectItem value="female" className="text-base">女</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

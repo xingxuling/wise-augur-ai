@@ -28,6 +28,58 @@ interface SolarTermTime {
 }
 
 const SOLAR_TERMS_DATA: { [key: number]: SolarTermTime[] } = {
+  2002: [
+    { month: 2, day: 4, hour: 14, minute: 24 }, // 立春
+    { month: 2, day: 19, hour: 1, minute: 14 }, // 雨水
+    { month: 3, day: 6, hour: 6, minute: 24 }, // 惊蛰
+    { month: 3, day: 21, hour: 7, minute: 16 }, // 春分
+    { month: 4, day: 5, hour: 10, minute: 51 }, // 清明
+    { month: 4, day: 20, hour: 18, minute: 0 }, // 谷雨
+    { month: 5, day: 6, hour: 9, minute: 5 }, // 立夏
+    { month: 5, day: 21, hour: 21, minute: 14 }, // 小满
+    { month: 6, day: 6, hour: 12, minute: 23 }, // 芒种
+    { month: 6, day: 22, hour: 5, minute: 8 }, // 夏至
+    { month: 7, day: 7, hour: 23, minute: 26 }, // 小暑
+    { month: 7, day: 23, hour: 16, minute: 3 }, // 大暑
+    { month: 8, day: 8, hour: 8, minute: 26 }, // 立秋
+    { month: 8, day: 23, hour: 23, minute: 2 }, // 处暑
+    { month: 9, day: 8, hour: 11, minute: 22 }, // 白露
+    { month: 9, day: 23, hour: 20, minute: 43 }, // 秋分
+    { month: 10, day: 9, hour: 3, minute: 3 }, // 寒露
+    { month: 10, day: 24, hour: 6, minute: 44 }, // 霜降
+    { month: 11, day: 8, hour: 6, minute: 37 }, // 立冬
+    { month: 11, day: 23, hour: 4, minute: 34 }, // 小雪
+    { month: 12, day: 8, hour: 1, minute: 8 }, // 大雪
+    { month: 12, day: 22, hour: 18, minute: 14 }, // 冬至
+    { month: 1, day: 6, hour: 9, minute: 9 }, // 小寒（次年2003）
+    { month: 1, day: 21, hour: 0, minute: 33 } // 大寒（次年2003）
+  ],
+  2003: [
+    { month: 2, day: 4, hour: 8, minute: 5 }, // 立春
+    { month: 2, day: 18, hour: 19, minute: 0 }, // 雨水
+    { month: 3, day: 6, hour: 0, minute: 23 }, // 惊蛰
+    { month: 3, day: 21, hour: 1, minute: 0 }, // 春分
+    { month: 4, day: 5, hour: 4, minute: 52 }, // 清明
+    { month: 4, day: 20, hour: 12, minute: 3 }, // 谷雨
+    { month: 5, day: 6, hour: 3, minute: 8 }, // 立夏
+    { month: 5, day: 21, hour: 15, minute: 16 }, // 小满
+    { month: 6, day: 6, hour: 6, minute: 25 }, // 芒种
+    { month: 6, day: 21, hour: 23, minute: 11 }, // 夏至
+    { month: 7, day: 7, hour: 17, minute: 30 }, // 小暑
+    { month: 7, day: 23, hour: 10, minute: 7 }, // 大暑
+    { month: 8, day: 8, hour: 2, minute: 31 }, // 立秋
+    { month: 8, day: 23, hour: 17, minute: 8 }, // 处暑
+    { month: 9, day: 8, hour: 5, minute: 27 }, // 白露
+    { month: 9, day: 23, hour: 14, minute: 47 }, // 秋分
+    { month: 10, day: 8, hour: 21, minute: 9 }, // 寒露
+    { month: 10, day: 24, hour: 0, minute: 49 }, // 霜降
+    { month: 11, day: 8, hour: 0, minute: 44 }, // 立冬
+    { month: 11, day: 22, hour: 22, minute: 44 }, // 小雪
+    { month: 12, day: 7, hour: 19, minute: 18 }, // 大雪
+    { month: 12, day: 22, hour: 12, minute: 4 }, // 冬至
+    { month: 1, day: 6, hour: 3, minute: 19 }, // 小寒（次年2004）
+    { month: 1, day: 20, hour: 18, minute: 43 } // 大寒（次年2004）
+  ],
   2024: [
     { month: 2, day: 4, hour: 16, minute: 27 }, // 立春
     { month: 2, day: 19, hour: 12, minute: 13 }, // 雨水
@@ -289,8 +341,9 @@ function getDaysInMonth(year: number, month: number): number {
   return daysInMonth[month - 1];
 }
 
-// 计算时柱（五子遁元 + 23:00分界规则）
-// 关键：23:00-23:59属于次日子时，需用次日日干起时柱
+// 计算时柱（五子遁元 + 子时分界规则）
+// 关键：23:00-00:59属于次日子时，需用次日日干起时柱
+// 注意：午时是11:00-12:59（传统上13:00前都算午时）
 // 口诀：甲己还加甲、乙庚丙作初、丙辛从戊起、丁壬庚子居、戊癸何方发、壬子是真途
 function getHourGanZhi(
   year: number, 
@@ -329,6 +382,7 @@ function getHourGanZhi(
   let actualHour = isNextDayZiShi ? 0 : hour;
   
   // 时辰对应：23-1子、1-3丑、3-5寅、5-7卯、7-9辰、9-11巳、11-13午、13-15未、15-17申、17-19酉、19-21戌、21-23亥
+  // 注意：传统上午时算到12:59，所以13:00才是未时
   const hourZhiIndex = Math.floor((actualHour + 1) / 2) % 12;
   
   // 五子遁元：子时天干 = (dayGanIndex % 5) * 2
@@ -411,6 +465,45 @@ function analyzeYongshen(wuxingAnalysis: Record<string, number>): { yongshen: st
     yongshen: minWuxing,
     description: descriptions[minWuxing]
   };
+}
+
+// 计算大运（根据性别和年干阴阳决定顺逆）
+// 阳男阴女顺行，阴男阳女逆行
+function calculateDayun(
+  monthGanZhi: string,
+  yearGan: string,
+  gender: 'male' | 'female'
+): string[] {
+  const yearGanIndex = TIANGAN.indexOf(yearGan);
+  const isYangGan = yearGanIndex % 2 === 0; // 甲丙戊庚壬为阳
+  
+  // 判断是否顺行：阳男阴女顺行，阴男阳女逆行
+  const isShunxing = (gender === 'male' && isYangGan) || (gender === 'female' && !isYangGan);
+  
+  const monthGan = monthGanZhi[0];
+  const monthZhi = monthGanZhi[1];
+  const monthGanIndex = TIANGAN.indexOf(monthGan);
+  const monthZhiIndex = DIZHI.indexOf(monthZhi);
+  
+  const dayun: string[] = [];
+  
+  if (isShunxing) {
+    // 顺行：天干地支都向后
+    for (let i = 1; i <= 8; i++) {
+      const ganIndex = (monthGanIndex + i) % 10;
+      const zhiIndex = (monthZhiIndex + i) % 12;
+      dayun.push(TIANGAN[ganIndex] + DIZHI[zhiIndex]);
+    }
+  } else {
+    // 逆行：天干地支都向前
+    for (let i = 1; i <= 8; i++) {
+      const ganIndex = (monthGanIndex - i + 10) % 10;
+      const zhiIndex = (monthZhiIndex - i + 12) % 12;
+      dayun.push(TIANGAN[ganIndex] + DIZHI[zhiIndex]);
+    }
+  }
+  
+  return dayun;
 }
 
 // 分析五行
@@ -569,9 +662,25 @@ serve(async (req) => {
     // 用神分析
     const yongshen = analyzeYongshen(wuxingAnalysis);
 
+    // 大运计算（根据性别和年干阴阳决定顺逆）
+    const yearGan = bazi.year[0];
+    const dayun = calculateDayun(monthGanZhi, yearGan, gender || 'male');
+    const dayunDirection = (() => {
+      const yearGanIndex = TIANGAN.indexOf(yearGan);
+      const isYangGan = yearGanIndex % 2 === 0;
+      const isShunxing = (gender === 'male' && isYangGan) || (gender === 'female' && !isYangGan);
+      return isShunxing ? '顺行' : '逆行';
+    })();
+
     // 构建详细结果
     const result = {
       bazi,
+      gender: gender || 'male',
+      dayun: {
+        sequence: dayun,
+        direction: dayunDirection,
+        description: `${gender === 'male' ? '男命' : '女命'}，年干${yearGan}为${TIANGAN.indexOf(yearGan) % 2 === 0 ? '阳' : '阴'}干，大运${dayunDirection}`
+      },
       wuxingAnalysis,
       lackingWuxing,
       shishenAnalysis,
