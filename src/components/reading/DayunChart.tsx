@@ -41,8 +41,9 @@ const calculateDayun = (
   const currentYear = new Date().getFullYear();
   const currentAge = currentYear - birthYear;
   
-  // 起运岁数（简化为5岁，实际应根据节气计算）
-  const qiyunAge = 5;
+  // 起运岁数（简化为8岁，实际应根据出生日距离节气的天数计算）
+  // 标准算法：顺行3天为1年，逆行同理
+  const qiyunAge = 8;
   
   // 生成10步大运
   for (let i = 0; i < 10; i++) {
@@ -202,7 +203,7 @@ export const DayunChart = ({ baziData, gender, birthYear }: DayunChartProps) => 
         <p className="text-xs text-muted-foreground leading-relaxed">
           <strong className="text-foreground">大运说明：</strong>
           大运从月柱起排，阳男阴女顺行，阴男阳女逆行，每步大运管10年。
-          起运年龄简化为5岁（实际应根据节气距离计算）。
+          起运年龄简化为8岁（实际应根据出生日距离节气的天数计算，顺逆行各3天折1年）。
           大运的吉凶判断需结合八字格局、用神喜忌等多方面因素综合分析，本图表仅供参考。
         </p>
       </div>
