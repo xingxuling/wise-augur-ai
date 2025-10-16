@@ -521,18 +521,61 @@ const Bazi = () => {
                     </div>
                   )}
 
-                  {/* 格局判断 */}
+                  {/* 格局判断（升级版：支持特殊格局展示） */}
                   {(result as any).pattern && (
                     <div className="border-t border-border pt-6">
                       <h3 className="text-xl font-semibold mb-4">格局判断</h3>
-                      <div className="bg-background/50 rounded-lg p-4 border border-primary/20">
+                      
+                      {/* 主格局卡片 */}
+                      <div className={`rounded-lg p-4 border-2 mb-4 ${
+                        (result as any).pattern.isSpecial 
+                          ? 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary' 
+                          : 'bg-background/50 border-primary/20'
+                      }`}>
+                        {(result as any).pattern.isSpecial && (
+                          <div className="inline-block px-2 py-1 bg-primary text-primary-foreground text-xs font-bold rounded mb-2">
+                            特殊格局
+                          </div>
+                        )}
                         <p className="text-lg font-semibold text-primary mb-2">
                           {(result as any).pattern.pattern}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
                           {(result as any).pattern.description}
                         </p>
+                        
+                        {/* 特殊格局详细信息 */}
+                        {(result as any).pattern.isSpecial && (result as any).pattern.allPatterns && (
+                          <div className="mt-4 space-y-3">
+                            {(result as any).pattern.allPatterns.map((p: any, idx: number) => (
+                              <div key={idx} className="bg-background/80 rounded p-3 border border-border">
+                                <p className="text-sm font-semibold text-primary mb-1">
+                                  {p.isPrimary ? '主格' : '兼格'}：{p.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground mb-2">
+                                  <span className="font-medium">成格条件：</span>{p.condition}
+                                </p>
+                                <p className="text-xs text-primary/80">
+                                  <span className="font-medium">经典依据：</span>{p.reference}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
+                      
+                      {/* 格局说明提示 */}
+                      {(result as any).pattern.isSpecial && (
+                        <div className="text-xs text-muted-foreground bg-primary/5 rounded p-3 border border-primary/10">
+                          <p className="font-medium mb-1">格局解读说明：</p>
+                          <ul className="space-y-1 list-disc list-inside">
+                            <li>特殊格局需要满足严格的成格条件</li>
+                            <li>格局判断基于《三命通会》《滴天髓》等经典著作</li>
+                            <li>格局喜忌直接影响大运流年吉凶，建议结合AI专业解读</li>
+                            <li>所有解读仅供参考，人生走向取决于自身选择与努力</li>
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   )}
 
