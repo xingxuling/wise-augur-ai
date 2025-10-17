@@ -85,6 +85,12 @@ serve(async (req) => {
     // 获取八字数据
     const baziData = question.bazi_record.result;
 
+    // 验证八字数据结构
+    if (!baziData || !baziData.year || !baziData.month || !baziData.day || !baziData.hour) {
+      console.error("八字数据结构不完整:", baziData);
+      throw new Error("八字数据不完整，无法生成解读");
+    }
+
     // 提取场景信息
     const sceneType = question.scene_type || "general";
     const sceneCategory = question.scene_category || "";
@@ -102,10 +108,10 @@ serve(async (req) => {
     const systemPrompt = `你是一位专业的八字命理师。用户的八字信息如下：
 
 【基本八字】
-年柱：${baziData.year.stem}${baziData.year.branch}
-月柱：${baziData.month.stem}${baziData.month.branch}
-日柱：${baziData.day.stem}${baziData.day.branch}
-时柱：${baziData.hour.stem}${baziData.hour.branch}
+年柱：${baziData.year?.stem || ''}${baziData.year?.branch || ''}
+月柱：${baziData.month?.stem || ''}${baziData.month?.branch || ''}
+日柱：${baziData.day?.stem || ''}${baziData.day?.branch || ''}
+时柱：${baziData.hour?.stem || ''}${baziData.hour?.branch || ''}
 
 【格局信息】
 ${baziData.pattern ? `格局：${baziData.pattern.pattern}
