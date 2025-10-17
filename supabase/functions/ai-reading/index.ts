@@ -35,6 +35,15 @@ serve(async (req) => {
       throw new Error('缺少必要参数');
     }
 
+    // 输入验证：防止无效readingType导致AI提示词生成错误
+    const ALLOWED_READING_TYPES = ['career', 'love', 'health', 'wealth', 'general', 'basic', 'professional', 'scenario'];
+    if (!ALLOWED_READING_TYPES.includes(readingType)) {
+      return new Response(
+        JSON.stringify({ error: `Invalid readingType: ${readingType}. Allowed values: ${ALLOWED_READING_TYPES.join(', ')}` }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     // 获取用户会员等级
     const { data: membershipData } = await supabase
       .from('user_memberships')

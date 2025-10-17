@@ -41,6 +41,14 @@ serve(async (req) => {
       throw new Error("问题不存在");
     }
 
+    // 输入验证：防止超长问题导致AI API成本攻击
+    if (!question.question || question.question.length < 10 || question.question.length > 500) {
+      return new Response(
+        JSON.stringify({ error: '问题长度必须在10-500字符之间' }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     // 速率限制检查：防止API滥用
     const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
     const { data: recentUsage, error: usageError } = await supabase
