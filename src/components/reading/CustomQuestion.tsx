@@ -22,10 +22,30 @@ export const CustomQuestion = ({ baziRecordId, baziData }: CustomQuestionProps) 
   const { usageCount, recordUsage } = useAIUsage();
 
   const handleSubmit = async () => {
+    // 输入验证：问题不能为空
     if (!question.trim()) {
       toast({
         title: '请输入问题',
         description: '请输入您想要咨询的命理问题',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // 输入验证：问题长度限制
+    if (question.trim().length < 10) {
+      toast({
+        title: '问题太短',
+        description: '请输入至少10个字符的问题',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (question.trim().length > 500) {
+      toast({
+        title: '问题太长',
+        description: '问题长度不能超过500个字符',
         variant: 'destructive',
       });
       return;
@@ -72,12 +92,15 @@ export const CustomQuestion = ({ baziRecordId, baziData }: CustomQuestionProps) 
 
       if (insertError) throw insertError;
 
+      toast({
+        title: '问题已提交',
+        description: 'AI正在分析您的八字并生成解答...',
+      });
+
       // 调用AI解答
       const { data: aiData, error: aiError } = await supabase.functions.invoke('custom-question-answer', {
         body: {
           questionId: questionData.id,
-          question: question.trim(),
-          baziData,
         },
       });
 
@@ -88,13 +111,14 @@ export const CustomQuestion = ({ baziRecordId, baziData }: CustomQuestionProps) 
       }
 
       setAnswer(aiData.answer);
+      setQuestion(''); // 清空输入框
       
       // 记录AI使用
       await recordUsage(baziRecordId);
 
       toast({
         title: '解答完成',
-        description: 'AI已根据您的八字给出建议',
+        description: 'AI已根据您的八字给出专业建议',
       });
     } catch (error) {
       console.error('Custom question error:', error);
@@ -122,19 +146,26 @@ export const CustomQuestion = ({ baziRecordId, baziData }: CustomQuestionProps) 
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Textarea
-            placeholder="例如：我适合从事什么行业？今年感情运势如何？何时适合创业？"
+            placeholder="例如：我适合从事什么行业？今年感情运势如何？何时适合创业？
+注意：问题长度需在10-500字符之间"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            className="min-h-[100px] resize-none"
+            className="min-h-[120px] resize-none"
             disabled={loading}
+            maxLength={500}
           />
           <div className="flex justify-between items-center">
-            <span className="text-xs text-muted-foreground">
-              {membership?.tier === 'free' ? '升级会员后可使用' : '会员专享功能'}
-            </span>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">
+                {membership?.tier === 'free' ? '升级会员后可使用' : '会员专享功能'}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {question.length}/500 字符
+              </span>
+            </div>
             <Button
               onClick={handleSubmit}
-              disabled={loading || !question.trim()}
+              disabled={loading || !question.trim() || question.trim().length < 10}
               className="gap-2"
             >
               {loading ? (

@@ -17,6 +17,7 @@ import { DayunChart } from "@/components/reading/DayunChart";
 import { LiunianAnalysis } from "@/components/reading/LiunianAnalysis";
 import { CustomQuestion } from "@/components/reading/CustomQuestion";
 import { QuestionHistory } from "@/components/reading/QuestionHistory";
+import { QuestionHistoryList } from "@/components/reading/QuestionHistoryList";
 import { BookmarkManager } from "@/components/reading/BookmarkManager";
 import { QuickSceneEntry } from "@/components/bazi/QuickSceneEntry";
 import { DerivationProcess } from "@/components/bazi/DerivationProcess";
@@ -911,6 +912,9 @@ const Bazi = () => {
               baziRecordId={recordId}
               baziData={result}
             />
+
+            {/* 问题历史记录 */}
+            <QuestionHistoryList />
 
               <Button
                 variant="outline"
