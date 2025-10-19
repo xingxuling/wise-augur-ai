@@ -348,6 +348,7 @@ function analyzeDayMasterStrength(bazi: { year: string; month: string; day: stri
 // ========== 特殊格局识别系统（基于《三命通会》《滴天髓》等经典） ==========
 
 // 判断专旺格（曲直、炎上、稼穑、从革、润下）
+// 依据：《三命通会》"专旺者，五行独旺而无克泄，顺其旺势则吉，逆之则凶"
 function checkZhuanwangPattern(bazi: { year: string; month: string; day: string; hour: string }, wuxingAnalysis: Record<string, number>): 
   { isPattern: boolean; name: string; condition: string; reference: string } | null {
   const dayGan = bazi.day[0];
@@ -364,108 +365,72 @@ function checkZhuanwangPattern(bazi: { year: string; month: string; day: string;
   const dayWuxingCount = wuxingAnalysis[dayWuxing];
   const dayWuxingPercent = dayWuxingCount / totalElements;
   
-  // 专旺格判定：日主五行占比≥50%，且地支成势（三会/三合局）
-  if (dayWuxingPercent >= 0.5) {
-    const patterns: Record<string, { name: string; zhiCheck: () => boolean }> = {
-      '木': { 
-        name: '曲直格', 
-        zhiCheck: () => {
-          const zhi = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
-          return (zhi.includes('寅') && zhi.includes('卯') && zhi.includes('辰')) || // 三会木局
-                 (zhi.filter(z => ['寅', '卯', '辰'].includes(z)).length >= 3);
-        }
-      },
-      '火': { 
-        name: '炎上格', 
-        zhiCheck: () => {
-          const zhi = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
-          return (zhi.includes('巳') && zhi.includes('午') && zhi.includes('未')) ||
-                 (zhi.filter(z => ['巳', '午', '未'].includes(z)).length >= 3);
-        }
-      },
-      '土': { 
-        name: '稼穑格', 
-        zhiCheck: () => {
-          const zhi = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
-          return zhi.filter(z => ['辰', '戌', '丑', '未'].includes(z)).length >= 3;
-        }
-      },
-      '金': { 
-        name: '从革格', 
-        zhiCheck: () => {
-          const zhi = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
-          return (zhi.includes('申') && zhi.includes('酉') && zhi.includes('戌')) ||
-                 (zhi.filter(z => ['申', '酉', '戌'].includes(z)).length >= 3);
-        }
-      },
-      '水': { 
-        name: '润下格', 
-        zhiCheck: () => {
-          const zhi = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
-          return (zhi.includes('亥') && zhi.includes('子') && zhi.includes('丑')) ||
-                 (zhi.filter(z => ['亥', '子', '丑'].includes(z)).length >= 3);
-        }
-      }
-    };
+  // 专旺格严格判定：日主五行占比≥60%，且无明显克泄（克泄五行总和<15%）
+  if (dayWuxingPercent >= 0.6) {
+    // 检查克泄之神的力量
+    const keXieWuxing = getKeXieWuxing(dayWuxing);
+    const keXiePercent = keXieWuxing.reduce((sum, wx) => sum + (wuxingAnalysis[wx] || 0), 0) / totalElements;
     
-    if (patterns[dayWuxing] && patterns[dayWuxing].zhiCheck()) {
-      return {
-        isPattern: true,
-        name: `专旺格（${patterns[dayWuxing].name}）`,
-        condition: `${dayGan}${dayWuxing}日主，地支${dayWuxing}气成势（占比${(dayWuxingPercent * 100).toFixed(0)}%），其他五行极弱无根`,
-        reference: '《滴天髓》："强众而敌寡，势在去其寡者"'
+    // 克泄之神不能太强，否则不成专旺
+    if (keXiePercent < 0.15) {
+      const patterns: Record<string, { name: string; zhiCheck: () => boolean }> = {
+        '木': { 
+          name: '曲直格', 
+          zhiCheck: () => {
+            const zhi = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
+            // 地支需有寅卯辰东方木局，或亥卯未三合木局
+            return (zhi.includes('寅') && zhi.includes('卯')) ||
+                   (zhi.includes('亥') && zhi.includes('卯') && zhi.includes('未')) ||
+                   (zhi.filter(z => ['寅', '卯', '辰', '亥'].includes(z)).length >= 3);
+          }
+        },
+        '火': { 
+          name: '炎上格', 
+          zhiCheck: () => {
+            const zhi = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
+            // 地支需有巳午未南方火局，或寅午戌三合火局
+            return (zhi.includes('巳') && zhi.includes('午')) ||
+                   (zhi.includes('寅') && zhi.includes('午') && zhi.includes('戌')) ||
+                   (zhi.filter(z => ['巳', '午', '未', '寅'].includes(z)).length >= 3);
+          }
+        },
+        '土': { 
+          name: '稼穑格', 
+          zhiCheck: () => {
+            const zhi = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
+            // 地支需有辰戌丑未四库土，或巳午未火土相生
+            return (zhi.filter(z => ['辰', '戌', '丑', '未'].includes(z)).length >= 2) ||
+                   (zhi.includes('巳') && zhi.includes('未'));
+          }
+        },
+        '金': { 
+          name: '从革格', 
+          zhiCheck: () => {
+            const zhi = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
+            // 地支需有申酉戌西方金局，或巳酉丑三合金局
+            return (zhi.includes('申') && zhi.includes('酉')) ||
+                   (zhi.includes('巳') && zhi.includes('酉') && zhi.includes('丑')) ||
+                   (zhi.filter(z => ['申', '酉', '戌', '巳'].includes(z)).length >= 3);
+          }
+        },
+        '水': { 
+          name: '润下格', 
+          zhiCheck: () => {
+            const zhi = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
+            // 地支需有亥子丑北方水局，或申子辰三合水局
+            return (zhi.includes('亥') && zhi.includes('子')) ||
+                   (zhi.includes('申') && zhi.includes('子') && zhi.includes('辰')) ||
+                   (zhi.filter(z => ['亥', '子', '丑', '申'].includes(z)).length >= 3);
+          }
+        }
       };
-    }
-  }
-  
-  return null;
-}
-
-// 判断从格（从财、从官杀、从印、从食伤）
-function checkCongPattern(bazi: { year: string; month: string; day: string; hour: string }, wuxingAnalysis: Record<string, number>):
-  { isPattern: boolean; name: string; condition: string; reference: string } | null {
-  const dayGan = bazi.day[0];
-  const dayWuxing = WUXING[TIANGAN.indexOf(dayGan)];
-  
-  const totalElements = Object.values(wuxingAnalysis).reduce((a, b) => a + b, 0);
-  const dayWuxingPercent = wuxingAnalysis[dayWuxing] / totalElements;
-  
-  // 从格判定：日主极弱（占比≤25%），且无根无气
-  if (dayWuxingPercent <= 0.25) {
-    // 找出最旺的五行
-    let maxWuxing = '木';
-    let maxCount = 0;
-    for (const [wx, count] of Object.entries(wuxingAnalysis)) {
-      if (wx !== dayWuxing && count > maxCount) {
-        maxCount = count;
-        maxWuxing = wx;
-      }
-    }
-    
-    const maxPercent = maxCount / totalElements;
-    if (maxPercent >= 0.4) {
-      // 判断是从什么格
-      const ganList = [bazi.year[0], bazi.month[0], bazi.day[0], bazi.hour[0]];
-      const shishenList = ganList.map(g => getShishen(dayGan, g));
-      const dominantShishen = shishenList.filter(s => s.includes('财') || s.includes('官') || s.includes('杀') || s.includes('印') || s.includes('食') || s.includes('伤'));
       
-      let congType = '';
-      if (dominantShishen.filter(s => s.includes('财')).length >= 2) {
-        congType = '从财格';
-      } else if (dominantShishen.filter(s => s.includes('官') || s.includes('杀')).length >= 2) {
-        congType = '从官杀格';
-      } else if (dominantShishen.filter(s => s.includes('印')).length >= 2) {
-        congType = '从印格';
-      } else if (dominantShishen.filter(s => s.includes('食') || s.includes('伤')).length >= 2) {
-        congType = '从食伤格';
-      }
-      
-      if (congType) {
+      if (patterns[dayWuxing] && patterns[dayWuxing].zhiCheck()) {
         return {
           isPattern: true,
-          name: congType,
-          condition: `${dayGan}${dayWuxing}日主极弱（占比${(dayWuxingPercent * 100).toFixed(0)}%），全局被${maxWuxing}气主导（占比${(maxPercent * 100).toFixed(0)}%），日主顺从其势`,
-          reference: '《三命通会》："从者，乃弃命而从人也"'
+          name: `专旺格（${patterns[dayWuxing].name}）`,
+          condition: `${dayGan}${dayWuxing}日主，全局${dayWuxing}气独旺（占比${(dayWuxingPercent * 100).toFixed(0)}%），地支成局，无明显克泄（克泄仅${(keXiePercent * 100).toFixed(0)}%），顺势而发`,
+          reference: '《三命通会》："专旺者，五行独旺而无克泄，顺其旺势则吉，逆之则凶"'
         };
       }
     }
@@ -474,7 +439,104 @@ function checkCongPattern(bazi: { year: string; month: string; day: string; hour
   return null;
 }
 
+// 获取克泄某五行的其他五行
+function getKeXieWuxing(wuxing: string): string[] {
+  const keXieMap: Record<string, string[]> = {
+    '木': ['金', '火'],  // 金克木，火泄木
+    '火': ['水', '土'],  // 水克火，土泄火
+    '土': ['木', '金'],  // 木克土，金泄土
+    '金': ['火', '水'],  // 火克金，水泄金
+    '水': ['土', '木']   // 土克水，木泄水
+  };
+  return keXieMap[wuxing] || [];
+}
+
+// 判断从格（从财、从官杀、从印、从食伤）
+// 依据：《滴天髓》"从势者，弃命而从人，不可执一己之见，当顺大势而行"
+function checkCongPattern(bazi: { year: string; month: string; day: string; hour: string }, wuxingAnalysis: Record<string, number>):
+  { isPattern: boolean; name: string; condition: string; reference: string } | null {
+  const dayGan = bazi.day[0];
+  const dayWuxing = WUXING[TIANGAN.indexOf(dayGan)];
+  const dayZhi = bazi.day[1];
+  
+  const totalElements = Object.values(wuxingAnalysis).reduce((a, b) => a + b, 0);
+  const dayWuxingPercent = wuxingAnalysis[dayWuxing] / totalElements;
+  
+  // 从格严格判定：日主极弱（占比≤20%），且日支不为根（不能是禄刃或长生帝旺）
+  if (dayWuxingPercent <= 0.2) {
+    // 检查日主是否在日支有根
+    const luMaps: Record<string, string> = {
+      '甲': '寅', '乙': '卯', '丙': '巳', '丁': '午',
+      '戊': '巳', '己': '午', '庚': '申', '辛': '酉',
+      '壬': '亥', '癸': '子'
+    };
+    const yangrenMaps: Record<string, string> = {
+      '甲': '卯', '丙': '午', '戊': '午', '庚': '酉', '壬': '子'
+    };
+    
+    // 日支为禄神或羊刃，则有强根，不能成从格
+    const hasStrongRoot = luMaps[dayGan] === dayZhi || yangrenMaps[dayGan] === dayZhi;
+    
+    if (!hasStrongRoot) {
+      // 找出主导的五行
+      let maxWuxing = '木';
+      let maxCount = 0;
+      for (const [wx, count] of Object.entries(wuxingAnalysis)) {
+        if (wx !== dayWuxing && count > maxCount) {
+          maxCount = count;
+          maxWuxing = wx;
+        }
+      }
+      
+      const maxPercent = maxCount / totalElements;
+      // 主导五行需占比≥50%，形成绝对优势
+      if (maxPercent >= 0.5) {
+        // 根据十神判断从格类型
+        const ganList = [bazi.year[0], bazi.month[0], bazi.day[0], bazi.hour[0]];
+        const shishenList = ganList.map(g => getShishen(dayGan, g));
+        
+        let congType = '';
+        let congDesc = '';
+        
+        const caiCount = shishenList.filter(s => s.includes('财')).length;
+        const guanCount = shishenList.filter(s => s.includes('官') || s.includes('杀')).length;
+        const yinCount = shishenList.filter(s => s.includes('印')).length;
+        const shiCount = shishenList.filter(s => s.includes('食') || s.includes('伤')).length;
+        
+        if (caiCount >= 2) {
+          congType = '从财格';
+          congDesc = '从财利，宜经商求财';
+        } else if (guanCount >= 2) {
+          congType = '从杀格';
+          congDesc = '从权势，宜公职管理';
+        } else if (yinCount >= 2) {
+          congType = '从印格';
+          congDesc = '从学问，宜文化教育';
+        } else if (shiCount >= 2) {
+          congType = '从儿格';
+          congDesc = '从秀气，宜艺术技能';
+        } else {
+          congType = '从势格';
+          congDesc = '从大势，顺应环境发展';
+        }
+        
+        if (congType) {
+          return {
+            isPattern: true,
+            name: congType,
+            condition: `${dayGan}${dayWuxing}日主极弱（占比${(dayWuxingPercent * 100).toFixed(0)}%），日支无强根，全局被${maxWuxing}气主导（占比${(maxPercent * 100).toFixed(0)}%），弃命从势，${congDesc}`,
+            reference: '《滴天髓》："从势者，弃命而从人，不可执一己之见，当顺大势而行"'
+          };
+        }
+      }
+    }
+  }
+  
+  return null;
+}
+
 // 判断化气格（甲己化土、乙庚化金、丙辛化水、丁壬化木、戊癸化火）
+// 依据：《子平真诠》"化气者，日主与月令天干五合而化，需化神得令有力，方为真化"
 function checkHuaqiPattern(bazi: { year: string; month: string; day: string; hour: string }, wuxingAnalysis: Record<string, number>):
   { isPattern: boolean; name: string; condition: string; reference: string } | null {
   const dayGan = bazi.day[0];
@@ -495,24 +557,31 @@ function checkHuaqiPattern(bazi: { year: string; month: string; day: string; hou
     '癸': { partner: '戊', huashen: '火', seasonZhi: ['巳', '午', '未'] }
   };
   
-  if (hehua[dayGan] && (hehua[dayGan].partner === monthGan || 
-      [bazi.year[0], bazi.hour[0]].includes(hehua[dayGan].partner))) {
+  // 化气格必须日干与月干相合（最严格的真化条件）
+  if (hehua[dayGan] && hehua[dayGan].partner === monthGan) {
     const huashen = hehua[dayGan].huashen;
     const seasonZhi = hehua[dayGan].seasonZhi;
     
-    // 化神当令（月令为化神五行的地支）
+    // 化神必须得令（月令为化神旺相之地）
     if (seasonZhi.includes(monthZhi)) {
-      // 检查是否有破化之神（克化神的五行）
       const totalElements = Object.values(wuxingAnalysis).reduce((a, b) => a + b, 0);
       const huashenPercent = wuxingAnalysis[huashen] / totalElements;
       
-      if (huashenPercent >= 0.35) {
-        return {
-          isPattern: true,
-          name: `化气格（${dayGan}${hehua[dayGan].partner}化${huashen}）`,
-          condition: `天干${dayGan}${hehua[dayGan].partner}相合，月令${monthZhi}为${huashen}令，化神${huashen}当权（占比${(huashenPercent * 100).toFixed(0)}%），无破化之神`,
-          reference: '《子平真诠》："化气者，五行之气，相化而成也"'
-        };
+      // 化神必须有力（占比≥40%），且没有强力破化之神
+      if (huashenPercent >= 0.4) {
+        // 检查破化之神（克化神的五行）
+        const pohuaWuxing = getPohuaWuxing(huashen);
+        const pohuaPercent = pohuaWuxing.reduce((sum, wx) => sum + (wuxingAnalysis[wx] || 0), 0) / totalElements;
+        
+        // 破化之神不能超过20%
+        if (pohuaPercent < 0.2) {
+          return {
+            isPattern: true,
+            name: `化气格（${dayGan}${hehua[dayGan].partner}化${huashen}）`,
+            condition: `日干${dayGan}与月干${monthGan}五合而化，月令${monthZhi}为${huashen}当令之地，化神${huashen}有力（占比${(huashenPercent * 100).toFixed(0)}%），无破化之神（仅${(pohuaPercent * 100).toFixed(0)}%），真化成格`,
+            reference: '《子平真诠》："化气者，日主与月令天干五合而化，需化神得令有力，方为真化"'
+          };
+        }
       }
     }
   }
@@ -520,16 +589,29 @@ function checkHuaqiPattern(bazi: { year: string; month: string; day: string; hou
   return null;
 }
 
+// 获取破化某五行的其他五行（克制化神的五行）
+function getPohuaWuxing(wuxing: string): string[] {
+  const pohuaMap: Record<string, string[]> = {
+    '木': ['金'],  // 金克木
+    '火': ['水'],  // 水克火
+    '土': ['木'],  // 木克土
+    '金': ['火'],  // 火克金
+    '水': ['土']   // 土克水
+  };
+  return pohuaMap[wuxing] || [];
+}
+
 // 判断魁罡格
+// 依据：《渊海子平》"魁罡叠叠掌大权，性刚果断，不怒自威，宜武职军警"
 function checkKuigangPattern(bazi: { year: string; month: string; day: string; hour: string }):
   { isPattern: true; name: string; condition: string; reference: string } | null {
   const dayPillar = bazi.day;
   const kuigangDays = ['庚辰', '壬辰', '戊戌', '庚戌'];
   
   if (kuigangDays.includes(dayPillar)) {
-    // 检查是否有刑冲破害（简化版：检查地支冲）
     const dayZhi = dayPillar[1];
     const allZhi = [bazi.year[1], bazi.month[1], bazi.day[1], bazi.hour[1]];
+    const ganList = [bazi.year[0], bazi.month[0], bazi.day[0], bazi.hour[0]];
     
     // 地支六冲：子午、丑未、寅申、卯酉、辰戌、巳亥
     const chongPairs: Record<string, string> = {
@@ -538,15 +620,31 @@ function checkKuigangPattern(bazi: { year: string; month: string; day: string; h
       '辰': '戌', '戌': '辰', '巳': '亥', '亥': '巳'
     };
     
+    // 检查是否有冲
     const hasChong = allZhi.some(zhi => zhi !== dayZhi && chongPairs[dayZhi] === zhi);
     
+    // 检查是否有财星破格（魁罡忌见财）
+    const dayGan = dayPillar[0];
+    const shishenList = ganList.map(g => getShishen(dayGan, g));
+    const hasCai = shishenList.some(s => s.includes('财'));
+    
+    // 魁罡格成格条件：无冲，且最好无财（财多则破格）
     if (!hasChong) {
-      return {
-        isPattern: true,
-        name: '魁罡格',
-        condition: `日柱为${dayPillar}（魁罡贵格），四柱地支无刑冲破害，格局纯正`,
-        reference: '《渊海子平》："魁罡叠叠掌大权，性格刚强志气坚"'
-      };
+      if (!hasCai) {
+        return {
+          isPattern: true,
+          name: '魁罡格（纯格）',
+          condition: `日柱为${dayPillar}（魁罡日），四柱无刑冲，天干不见财星，格局纯正，主性格刚毅果断，有领导才能，适合武职、执法、管理`,
+          reference: '《渊海子平》："魁罡叠叠掌大权，性刚果断，不怒自威，宜武职军警"'
+        };
+      } else {
+        return {
+          isPattern: true,
+          name: '魁罡格（见财）',
+          condition: `日柱为${dayPillar}（魁罡日），四柱无刑冲，但天干见财星，格局稍减，仍主性格刚强，但宜文武兼修`,
+          reference: '《渊海子平》："魁罡见财官，格局受损，宜文武并用"'
+        };
+      }
     }
   }
   
