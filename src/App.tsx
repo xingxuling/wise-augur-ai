@@ -10,6 +10,8 @@ import Checkout from "./pages/Checkout";
 import Share from "./pages/Share";
 import Learning from "./pages/Learning";
 import Referral from "./pages/Referral";
+import Membership from "./pages/Membership";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +27,8 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/bazi" element={<Bazi />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/membership" element={<Membership />} />
           <Route path="/share/:shareCode" element={<Share />} />
           <Route path="/learning" element={<Learning />} />
           <Route path="/referral" element={<Referral />} />

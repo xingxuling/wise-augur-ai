@@ -29,6 +29,7 @@ import { CustomReadingScenes } from "@/components/reading/CustomReadingScenes";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { MembershipBadge } from "@/components/MembershipBadge";
 import { AdminBadge } from "@/components/AdminBadge";
+import { UsageStats } from "@/components/membership/UsageStats";
 import { useMembership } from "@/hooks/useMembership";
 import { useAIUsage } from "@/hooks/useAIUsage";
 import {
@@ -306,6 +307,13 @@ const Bazi = () => {
                   <BookmarkManager />
                 </>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/membership")}
+              >
+                会员中心
+              </Button>
               <AdminBadge />
               <MembershipBadge />
               <LanguageSelector />
@@ -313,6 +321,11 @@ const Bazi = () => {
           </div>
           <h1 className="text-4xl font-bold text-gradient mb-2">智能八字解析</h1>
           <p className="text-muted-foreground">输入您的出生信息，获取精准命理分析</p>
+        </div>
+
+        {/* Usage Stats */}
+        <div className="mb-6">
+          <UsageStats />
         </div>
 
         {/* Input Form */}

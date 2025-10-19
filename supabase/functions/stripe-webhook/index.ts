@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-  apiVersion: "2023-10-16",
+  apiVersion: "2025-08-27.basil",
 });
 
 const corsHeaders = {
@@ -43,10 +43,29 @@ serve(async (req) => {
 
         if (!userId || !metadata) break;
 
-        // 创建订阅记录
+        const tier = metadata.tier || 'basic';
+        const subscription = session.subscription;
+
+        // 更新用户会员信息
         const expiresAt = new Date();
         expiresAt.setMonth(expiresAt.getMonth() + 1);
 
+        const { error: membershipError } = await supabaseClient
+          .from('user_memberships')
+          .update({
+            tier: tier,
+            expires_at: expiresAt.toISOString(),
+            stripe_customer_id: session.customer,
+            stripe_subscription_id: subscription,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', userId);
+
+        if (membershipError) {
+          console.error('更新会员信息失败:', membershipError);
+        }
+
+        // 创建订阅记录
         const { error: subError } = await supabaseClient
           .from("subscriptions")
           .insert({

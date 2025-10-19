@@ -32,11 +32,27 @@ serve(async (req) => {
     const { planType, region, amount, currency } = await req.json();
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2023-10-16",
+      apiVersion: "2025-08-27.basil",
     });
+
+    // 检查是否已有 Stripe customer
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    let customerId;
+    if (customers.data.length > 0) {
+      customerId = customers.data[0].id;
+    }
+
+    // 会员等级映射
+    const tierMap: Record<string, 'basic' | 'premium' | 'vip'> = {
+      'basic': 'basic',
+      'advanced': 'premium',
+      'premium': 'vip'
+    };
 
     // 创建Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      customer_email: customerId ? undefined : user.email,
       payment_method_types: ["card"],
       mode: "subscription",
       line_items: [
@@ -47,7 +63,7 @@ serve(async (req) => {
               name: `通胜AI - ${planType === 'basic' ? '基础版' : planType === 'advanced' ? '进阶版' : '尊享版'}`,
               description: "专业八字命理分析服务",
             },
-            unit_amount: Math.round(amount * 100), // Stripe使用最小货币单位
+            unit_amount: Math.round(amount * 100),
             recurring: {
               interval: "month",
             },
@@ -55,12 +71,13 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: `${req.headers.get("origin")}/`,
-      cancel_url: `${req.headers.get("origin")}/checkout`,
+      success_url: `${req.headers.get("origin")}/?payment=success`,
+      cancel_url: `${req.headers.get("origin")}/pricing`,
       client_reference_id: user.id,
       metadata: {
         user_id: user.id,
         plan_type: planType,
+        tier: tierMap[planType],
         region: region,
       },
     });
