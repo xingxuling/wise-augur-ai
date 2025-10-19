@@ -57,6 +57,7 @@ export const useAIChat = (baziRecordId?: string) => {
 
       // 获取会话ID
       const newSessionId = response.headers.get('X-Session-Id');
+      const currentSessionId = newSessionId || sessionId;
       if (newSessionId && !sessionId) {
         setSessionId(newSessionId);
       }
@@ -111,12 +112,12 @@ export const useAIChat = (baziRecordId?: string) => {
           }
         }
 
-        // 保存助手消息到数据库
-        if (assistantMessage && sessionId) {
+        // 保存助手消息到数据库 - 使用当前会话ID
+        if (assistantMessage && currentSessionId) {
           await supabase
             .from('ai_chat_messages')
             .insert({
-              session_id: sessionId,
+              session_id: currentSessionId,
               role: 'assistant',
               content: assistantMessage
             });

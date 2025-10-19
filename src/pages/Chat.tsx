@@ -1,21 +1,22 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AIChat } from '@/components/chat/AIChat';
 import { ChatHistory } from '@/components/chat/ChatHistory';
-import { useAIChat } from '@/hooks/useAIChat';
 
 const Chat = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const baziRecordId = searchParams.get('baziRecordId') || undefined;
-  const { loadHistory } = useAIChat(baziRecordId);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
-  const handleSelectSession = async (sessionId: string) => {
+  const handleSelectSession = (sessionId: string) => {
     setSelectedSessionId(sessionId);
-    await loadHistory(sessionId);
+  };
+
+  const handleNewChat = () => {
+    setSelectedSessionId(null);
   };
 
   return (
@@ -23,15 +24,20 @@ const Chat = () => {
       {/* 头部 */}
       <div className="bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b">
         <div className="container mx-auto px-4 py-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            返回
-          </Button>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              返回
+            </Button>
+            <Button onClick={handleNewChat}>
+              <Plus className="w-4 h-4 mr-2" />
+              新对话
+            </Button>
+          </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-bold">AI 命理问答</h1>
             <p className="text-muted-foreground">
@@ -54,7 +60,11 @@ const Chat = () => {
 
           {/* 右侧：聊天界面 */}
           <div className="lg:col-span-2">
-            <AIChat baziRecordId={baziRecordId} />
+            <AIChat 
+              baziRecordId={baziRecordId}
+              sessionId={selectedSessionId}
+              onSessionCreated={setSelectedSessionId}
+            />
           </div>
         </div>
       </div>

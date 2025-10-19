@@ -9,13 +9,32 @@ import { useToast } from '@/hooks/use-toast';
 
 interface AIChatProps {
   baziRecordId?: string;
+  sessionId?: string | null;
+  onSessionCreated?: (sessionId: string) => void;
 }
 
-export const AIChat = ({ baziRecordId }: AIChatProps) => {
-  const { messages, isLoading, sendMessage, clearChat, stopGeneration } = useAIChat(baziRecordId);
+export const AIChat = ({ baziRecordId, sessionId: externalSessionId, onSessionCreated }: AIChatProps) => {
+  const { messages, isLoading, sendMessage, clearChat, stopGeneration, loadHistory, sessionId } = useAIChat(baziRecordId);
   const [input, setInput] = useState('');
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // 当会话ID更新时通知父组件
+  useEffect(() => {
+    if (sessionId && onSessionCreated) {
+      onSessionCreated(sessionId);
+    }
+  }, [sessionId, onSessionCreated]);
+
+  // 加载外部指定的会话
+  useEffect(() => {
+    if (externalSessionId) {
+      loadHistory(externalSessionId);
+    } else if (externalSessionId === null) {
+      // 新对话，清空消息
+      clearChat();
+    }
+  }, [externalSessionId, loadHistory, clearChat]);
 
   useEffect(() => {
     // 自动滚动到底部
