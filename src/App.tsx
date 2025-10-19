@@ -12,6 +12,7 @@ import Learning from "./pages/Learning";
 import Referral from "./pages/Referral";
 import Membership from "./pages/Membership";
 import Pricing from "./pages/Pricing";
+import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/membership" element={<Membership />} />
+          <Route path="/chat" element={<Chat />} />
           <Route path="/share/:shareCode" element={<Share />} />
           <Route path="/learning" element={<Learning />} />
           <Route path="/referral" element={<Referral />} />

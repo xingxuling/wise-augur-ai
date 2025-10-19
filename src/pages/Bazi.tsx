@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Sparkles, ArrowLeft, Calendar as CalendarIcon, BarChart3 } from "lucide-react";
+import { Loader2, Sparkles, ArrowLeft, Calendar as CalendarIcon, BarChart3, MessageSquare, Crown } from "lucide-react";
 import { z } from "zod";
 import { REGIONS, getRegionByValue } from "@/lib/regions";
 import { CalendarType, formatDate, correctDate, isValidSolarDate, isValidLunarDate, solarToLunar, lunarToSolar, LUNAR_MONTHS, LUNAR_DAYS, lunarMonthNameToNumber, lunarDayNameToNumber } from "@/lib/calendar";
@@ -312,8 +312,19 @@ const Bazi = () => {
                 size="sm"
                 onClick={() => navigate("/membership")}
               >
+                <Crown className="w-4 h-4 mr-2" />
                 会员中心
               </Button>
+              {recordId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/chat?baziRecordId=${recordId}`)}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  AI问答
+                </Button>
+              )}
               <AdminBadge />
               <MembershipBadge />
               <LanguageSelector />

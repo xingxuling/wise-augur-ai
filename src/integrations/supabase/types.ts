@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          session_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          session_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ai_chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_chat_sessions: {
+        Row: {
+          bazi_record_id: string | null
+          created_at: string
+          id: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bazi_record_id?: string | null
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bazi_record_id?: string | null
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_readings: {
         Row: {
           bazi_record_id: string | null
