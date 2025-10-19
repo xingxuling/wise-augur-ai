@@ -16,9 +16,10 @@ interface ChatSession {
 interface ChatHistoryProps {
   onSelectSession: (sessionId: string) => void;
   currentSessionId?: string | null;
+  refreshTrigger?: number;
 }
 
-export const ChatHistory = ({ onSelectSession, currentSessionId }: ChatHistoryProps) => {
+export const ChatHistory = ({ onSelectSession, currentSessionId, refreshTrigger }: ChatHistoryProps) => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -47,7 +48,7 @@ export const ChatHistory = ({ onSelectSession, currentSessionId }: ChatHistoryPr
 
   useEffect(() => {
     fetchSessions();
-  }, []);
+  }, [refreshTrigger]);
 
   const handleDelete = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();

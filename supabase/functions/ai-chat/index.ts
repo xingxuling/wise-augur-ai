@@ -106,18 +106,29 @@ serve(async (req) => {
     // 获取或创建会话
     let currentSessionId = sessionId;
     if (!currentSessionId) {
+      // 生成更智能的会话标题
+      const title = message.length > 30 
+        ? message.substring(0, 30) + '...' 
+        : message;
+      
       const { data: newSession, error: sessionError } = await supabase
         .from('ai_chat_sessions')
         .insert({
           user_id: user.id,
           bazi_record_id: baziRecordId,
-          title: message.substring(0, 50)
+          title: title
         })
         .select()
         .single();
 
       if (sessionError) throw sessionError;
       currentSessionId = newSession.id;
+    } else {
+      // 更新已有会话的时间戳
+      await supabase
+        .from('ai_chat_sessions')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', currentSessionId);
     }
 
     // 获取聊天历史

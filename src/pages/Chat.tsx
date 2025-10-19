@@ -4,12 +4,14 @@ import { ArrowLeft, Plus } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AIChat } from '@/components/chat/AIChat';
 import { ChatHistory } from '@/components/chat/ChatHistory';
+import { UsageStats } from '@/components/chat/UsageStats';
 
 const Chat = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const baziRecordId = searchParams.get('baziRecordId') || undefined;
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleSelectSession = (sessionId: string) => {
     setSelectedSessionId(sessionId);
@@ -17,6 +19,11 @@ const Chat = () => {
 
   const handleNewChat = () => {
     setSelectedSessionId(null);
+  };
+
+  const handleSessionCreated = (sessionId: string) => {
+    setSelectedSessionId(sessionId);
+    setRefreshTrigger(prev => prev + 1);
   };
 
   return (
@@ -50,11 +57,13 @@ const Chat = () => {
       {/* 主要内容 */}
       <div className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* 左侧：聊天历史 */}
-          <div className="lg:col-span-1">
+          {/* 左侧：聊天历史和使用统计 */}
+          <div className="lg:col-span-1 space-y-6">
+            <UsageStats />
             <ChatHistory 
               onSelectSession={handleSelectSession}
               currentSessionId={selectedSessionId}
+              refreshTrigger={refreshTrigger}
             />
           </div>
 
@@ -63,7 +72,7 @@ const Chat = () => {
             <AIChat 
               baziRecordId={baziRecordId}
               sessionId={selectedSessionId}
-              onSessionCreated={setSelectedSessionId}
+              onSessionCreated={handleSessionCreated}
             />
           </div>
         </div>
