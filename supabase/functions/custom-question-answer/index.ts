@@ -70,6 +70,37 @@ serve(async (req) => {
     
     const membershipTier = membershipData?.tier || 'free';
 
+    // 月度使用次数限制检查
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { data: monthlyUsage, error: usageCheckError } = await supabase
+      .from('ai_usage_records')
+      .select('id', { count: 'exact' })
+      .eq('user_id', question.bazi_record.user_id)
+      .eq('usage_type', 'ai_reading')
+      .gte('created_at', startOfMonth.toISOString());
+
+    if (usageCheckError) {
+      console.error('检查月度使用记录失败:', usageCheckError);
+    }
+
+    const monthlyUsageCount = monthlyUsage?.length || 0;
+
+    // 根据会员等级检查月度限制
+    const monthlyLimits: Record<string, number> = {
+      free: 3,
+      basic: 20,
+      premium: 100,
+      vip: -1 // 无限
+    };
+    const monthlyLimit = monthlyLimits[membershipTier] || monthlyLimits.free;
+
+    if (monthlyLimit !== -1 && monthlyUsageCount >= monthlyLimit) {
+      throw new Error(`本月AI解读次数已用完（${monthlyUsageCount}/${monthlyLimit}次），升级会员可获得更多次数`);
+    }
+
     // 根据会员等级设置速率限制
     const rateLimits: Record<string, number> = {
       free: 3,
@@ -191,6 +222,19 @@ ${baziData.wuxingAnalysis ? Object.entries(baziData.wuxingAnalysis).map(([key, v
     if (updateError) {
       console.error("更新问题失败:", updateError);
       throw updateError;
+    }
+
+    // 记录AI使用次数
+    const { error: recordError } = await supabase
+      .from('ai_usage_records')
+      .insert({
+        user_id: question.bazi_record.user_id,
+        usage_type: 'ai_reading',
+        bazi_record_id: question.bazi_record_id,
+      });
+
+    if (recordError) {
+      console.error('记录使用次数失败:', recordError);
     }
 
     console.log("定制解读生成成功:", questionId);

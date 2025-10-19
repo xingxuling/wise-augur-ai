@@ -53,6 +53,37 @@ serve(async (req) => {
     
     const membershipTier = membershipData?.tier || 'free';
 
+    // 月度使用次数限制检查
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { data: monthlyUsage, error: usageCheckError } = await supabase
+      .from('ai_usage_records')
+      .select('id', { count: 'exact' })
+      .eq('user_id', user.id)
+      .eq('usage_type', 'ai_reading')
+      .gte('created_at', startOfMonth.toISOString());
+
+    if (usageCheckError) {
+      console.error('检查月度使用记录失败:', usageCheckError);
+    }
+
+    const usageCount = monthlyUsage?.length || 0;
+
+    // 根据会员等级检查月度限制
+    const monthlyLimits: Record<string, number> = {
+      free: 3,
+      basic: 20,
+      premium: 100,
+      vip: -1 // 无限
+    };
+    const monthlyLimit = monthlyLimits[membershipTier] || monthlyLimits.free;
+
+    if (monthlyLimit !== -1 && usageCount >= monthlyLimit) {
+      throw new Error(`本月AI解读次数已用完（${usageCount}/${monthlyLimit}次），升级会员可获得更多次数`);
+    }
+
     // 获取八字记录
     const { data: baziRecord, error: fetchError } = await supabase
       .from('bazi_records')
