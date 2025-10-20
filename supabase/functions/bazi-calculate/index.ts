@@ -993,29 +993,296 @@ function analyzePattern(bazi: { year: string; month: string; day: string; hour: 
   };
 }
 
-// 判断用神
-function analyzeYongshen(wuxingAnalysis: Record<string, number>): { yongshen: string; description: string } {
-  let minWuxing = '木';
-  let minCount = wuxingAnalysis['木'];
+// 分析日主旺衰程度（精确算法）
+// 依据：《子平真诠》《滴天髓》旺衰判断法则
+function analyzeDayMasterStrengthDetailed(
+  bazi: { year: string; month: string; day: string; hour: string },
+  wuxingAnalysis: Record<string, number>
+): { strength: 'very_weak' | 'weak' | 'neutral' | 'strong' | 'very_strong'; score: number; analysis: string } {
+  const dayGan = bazi.day[0];
+  const dayWuxing = WUXING[TIANGAN.indexOf(dayGan)];
+  const monthZhi = bazi.month[1];
   
-  for (const [wuxing, count] of Object.entries(wuxingAnalysis)) {
-    if (count < minCount) {
-      minCount = count;
-      minWuxing = wuxing;
+  let strengthScore = 0;
+  const factors: string[] = [];
+  
+  // 1. 月令（占50%权重）- 最关键因素
+  const monthZhiWuxing = DIZHI_WUXING[DIZHI.indexOf(monthZhi)];
+  const shengWuxing = getShengWuxing(dayWuxing); // 生我者
+  const keWuxing = getKeWuxing(dayWuxing); // 克我者
+  
+  if (monthZhiWuxing === dayWuxing) {
+    strengthScore += 50;
+    factors.push('得月令本气相助（+50）');
+  } else if (shengWuxing.includes(monthZhiWuxing)) {
+    strengthScore += 40;
+    factors.push('得月令印星生助（+40）');
+  } else if (keWuxing.includes(monthZhiWuxing)) {
+    strengthScore -= 30;
+    factors.push('月令官杀克身（-30）');
+  } else {
+    strengthScore -= 20;
+    factors.push('月令泄耗日主（-20）');
+  }
+  
+  // 2. 地支根气（占30%权重）
+  const zhiList = [bazi.year[1], bazi.day[1], bazi.hour[1]]; // 除月令外的地支
+  let rootCount = 0;
+  zhiList.forEach(zhi => {
+    const zhiWuxing = DIZHI_WUXING[DIZHI.indexOf(zhi)];
+    if (zhiWuxing === dayWuxing) {
+      rootCount++;
+      strengthScore += 10;
+    } else if (shengWuxing.includes(zhiWuxing)) {
+      strengthScore += 8;
+    }
+  });
+  if (rootCount > 0) {
+    factors.push(`地支有${rootCount}个根气（+${rootCount * 10}）`);
+  }
+  
+  // 3. 天干帮扶（占20%权重）
+  const ganList = [bazi.year[0], bazi.month[0], bazi.hour[0]];
+  let helpCount = 0;
+  ganList.forEach(gan => {
+    const ganWuxing = WUXING[TIANGAN.indexOf(gan)];
+    if (ganWuxing === dayWuxing) {
+      helpCount++;
+      strengthScore += 7;
+    } else if (shengWuxing.includes(ganWuxing)) {
+      strengthScore += 5;
+    }
+  });
+  if (helpCount > 0) {
+    factors.push(`天干有${helpCount}个比劫帮身（+${helpCount * 7}）`);
+  }
+  
+  // 判定旺衰等级
+  let strength: 'very_weak' | 'weak' | 'neutral' | 'strong' | 'very_strong';
+  let analysis: string;
+  
+  if (strengthScore >= 60) {
+    strength = 'very_strong';
+    analysis = '日主极旺，身强力壮';
+  } else if (strengthScore >= 30) {
+    strength = 'strong';
+    analysis = '日主偏旺，自身有力';
+  } else if (strengthScore >= -10) {
+    strength = 'neutral';
+    analysis = '日主中和，强弱适中';
+  } else if (strengthScore >= -40) {
+    strength = 'weak';
+    analysis = '日主偏弱，需要扶助';
+  } else {
+    strength = 'very_weak';
+    analysis = '日主极弱，身弱难支';
+  }
+  
+  return {
+    strength,
+    score: strengthScore,
+    analysis: `${analysis}（强度值：${strengthScore}）\n判断依据：${factors.join('；')}`
+  };
+}
+
+// 获取生我的五行
+function getShengWuxing(wuxing: string): string[] {
+  const shengMap: Record<string, string[]> = {
+    '木': ['水'],
+    '火': ['木'],
+    '土': ['火'],
+    '金': ['土'],
+    '水': ['金']
+  };
+  return shengMap[wuxing] || [];
+}
+
+// 获取克我的五行
+function getKeWuxing(wuxing: string): string[] {
+  const keMap: Record<string, string[]> = {
+    '木': ['金'],
+    '火': ['水'],
+    '土': ['木'],
+    '金': ['火'],
+    '水': ['土']
+  };
+  return keMap[wuxing] || [];
+}
+
+// 获取我生的五行
+function getWoShengWuxing(wuxing: string): string[] {
+  const woShengMap: Record<string, string[]> = {
+    '木': ['火'],
+    '火': ['土'],
+    '土': ['金'],
+    '金': ['水'],
+    '水': ['木']
+  };
+  return woShengMap[wuxing] || [];
+}
+
+// 获取我克的五行
+function getWoKeWuxing(wuxing: string): string[] {
+  const woKeMap: Record<string, string[]> = {
+    '木': ['土'],
+    '火': ['金'],
+    '土': ['水'],
+    '金': ['木'],
+    '水': ['火']
+  };
+  return woKeMap[wuxing] || [];
+}
+
+// 判断用神、喜神、忌神（基于古籍理论）
+// 依据：《子平真诠》"有病方为贵，无伤不是奇，格中如去病，财禄喜相随"
+// 《滴天髓》"以中和为贵，太过不及皆为病"
+function analyzeXiYongJiShen(
+  bazi: { year: string; month: string; day: string; hour: string },
+  wuxingAnalysis: Record<string, number>,
+  specialPattern: { hasSpecialPattern: boolean; specialPatterns: any[] }
+): {
+  yongshen: string[];
+  xishen: string[];
+  jishen: string[];
+  choushen: string[];
+  method: string;
+  description: string;
+  reference: string;
+} {
+  const dayGan = bazi.day[0];
+  const dayWuxing = WUXING[TIANGAN.indexOf(dayGan)];
+  const monthZhi = bazi.month[1];
+  const monthZhiWuxing = DIZHI_WUXING[DIZHI.indexOf(monthZhi)];
+  
+  // 获取日主强弱分析
+  const strengthAnalysis = analyzeDayMasterStrengthDetailed(bazi, wuxingAnalysis);
+  
+  let yongshen: string[] = [];
+  let xishen: string[] = [];
+  let jishen: string[] = [];
+  let choushen: string[] = [];
+  let method = '';
+  let description = '';
+  let reference = '';
+  
+  // 特殊格局用神（优先）
+  if (specialPattern.hasSpecialPattern) {
+    const primaryPattern = specialPattern.specialPatterns.find(p => p.isPrimary);
+    
+    if (primaryPattern) {
+      // 从格用神
+      if (primaryPattern.name.includes('从')) {
+        const congType = primaryPattern.name;
+        if (congType.includes('从财')) {
+          yongshen = ['财星', '食伤'];
+          xishen = ['官杀'];
+          jishen = ['比劫', '印星'];
+          method = '从财格用神';
+          description = '从财格，以财为用，喜食伤生财、官杀护财，忌比劫夺财、印星克食伤';
+          reference = '《滴天髓》："从财喜财旺，食伤亦为奇，官杀来护卫，忌见印比扶身"';
+        } else if (congType.includes('从杀')) {
+          yongshen = ['七杀', '正官'];
+          xishen = ['财星', '食伤'];
+          jishen = ['比劫', '印星'];
+          method = '从杀格用神';
+          description = '从杀格，以官杀为用，喜财星生杀、食伤制杀有情，忌比劫抗杀、印星化杀';
+          reference = '《滴天髓》："从杀喜杀旺，财官来相生，食伤制有情，忌见印比生身"';
+        } else if (congType.includes('从儿')) {
+          yongshen = ['食神', '伤官'];
+          xishen = ['财星'];
+          jishen = ['印星', '比劫'];
+          method = '从儿格用神';
+          description = '从儿格，以食伤为用，喜财星泄秀，忌印星夺食、比劫争食';
+          reference = '《滴天髓》："从儿只论食伤旺，财星得用最为佳，切忌枭印来夺食"';
+        } else {
+          // 从势格
+          yongshen = ['顺势之神'];
+          method = '从势格用神';
+          description = '从势格，顺其旺势，忌逆其势';
+          reference = '《滴天髓》："势在彼而从彼，势在我而从我"';
+        }
+      }
+      // 专旺格用神
+      else if (primaryPattern.name.includes('格') && ['曲直', '炎上', '稼穑', '从革', '润下'].some(p => primaryPattern.name.includes(p))) {
+        yongshen = [dayWuxing, ...getWoShengWuxing(dayWuxing)];
+        xishen = getShengWuxing(dayWuxing);
+        jishen = [...getKeWuxing(dayWuxing), ...getWoKeWuxing(dayWuxing)];
+        method = '专旺格用神';
+        description = `${primaryPattern.name}，顺其旺势，喜${dayWuxing}、${getWoShengWuxing(dayWuxing)[0]}，忌克泄之神`;
+        reference = '《三命通会》："专旺者，顺其旺势则吉，逆之则凶"';
+      }
+      
+      if (yongshen.length > 0) {
+        return { yongshen, xishen, jishen, choushen, method, description, reference };
+      }
     }
   }
   
-  const descriptions: Record<string, string> = {
-    '木': '用神为木，宜东方发展，多接触绿色、木质物品，从事文教、出版等行业有利',
-    '火': '用神为火，宜南方发展，多接触红色事物，从事能源、餐饮等行业有利',
-    '土': '用神为土，宜本地发展，多接触黄色、土系物品，从事房地产、农业等行业有利',
-    '金': '用神为金，宜西方发展，多接触白色、金属物品，从事金融、科技等行业有利',
-    '水': '用神为水，宜北方发展，多接触黑色、蓝色事物，从事流通、运输等行业有利'
-  };
+  // 正格用神 - 扶抑法（最常用）
+  if (strengthAnalysis.strength === 'very_strong' || strengthAnalysis.strength === 'strong') {
+    // 身强用官杀、食伤、财星泄耗
+    yongshen = getWoShengWuxing(dayWuxing); // 食伤（我生者）
+    xishen = [...getWoKeWuxing(dayWuxing), ...getKeWuxing(dayWuxing)]; // 财官
+    jishen = [dayWuxing, ...getShengWuxing(dayWuxing)]; // 比劫、印星
+    choushen = jishen;
+    method = '扶抑法（身强用泄）';
+    description = `日主${strengthAnalysis.analysis.split('（')[0]}，宜泄耗日主之力。用神取食伤吐秀，喜财官消耗，忌比劫助身、印星生身`;
+    reference = '《子平真诠》："日主强，宜泄宜耗。食伤为用，见财官为喜，忌印比生助"';
+  } else if (strengthAnalysis.strength === 'very_weak' || strengthAnalysis.strength === 'weak') {
+    // 身弱用印星、比劫帮扶
+    yongshen = getShengWuxing(dayWuxing); // 印星（生我者）
+    xishen = [dayWuxing]; // 比劫
+    jishen = [...getWoShengWuxing(dayWuxing), ...getKeWuxing(dayWuxing)]; // 食伤、官杀
+    choushen = getWoKeWuxing(dayWuxing); // 财星最忌
+    method = '扶抑法（身弱用扶）';
+    description = `日主${strengthAnalysis.analysis.split('（')[0]}，宜生扶日主之力。用神取印星生身，喜比劫帮身，忌食伤泄气、财星耗身、官杀克身`;
+    reference = '《子平真诠》："日主弱，宜扶宜助。印绶为用，比劫为喜，忌财官食伤"';
+  } else {
+    // 中和 - 调候法或看月令十神
+    const monthGan = bazi.month[0];
+    const monthShishen = getShishen(dayGan, monthGan);
+    
+    // 根据月令十神取用
+    if (monthShishen.includes('财')) {
+      yongshen = getWoKeWuxing(dayWuxing); // 财星
+      xishen = getWoShengWuxing(dayWuxing); // 食伤生财
+      jishen = getShengWuxing(dayWuxing); // 印星克食伤
+      method = '顺用月令（财格）';
+      description = '日主中和，顺用月令财星，喜食伤生财，忌印星夺食、比劫分财';
+      reference = '《子平真诠》："月令财星，喜食伤生财，官星护财，忌比劫分夺"';
+    } else if (monthShishen.includes('官') || monthShishen === '七杀') {
+      yongshen = getKeWuxing(dayWuxing); // 官杀
+      xishen = [...getWoKeWuxing(dayWuxing), ...getShengWuxing(dayWuxing)]; // 财星生官、印星化杀
+      jishen = [dayWuxing]; // 比劫抗官
+      method = '顺用月令（官杀格）';
+      description = '日主中和，顺用月令官杀，喜财星生官、印星化杀，忌比劫抗官、伤官见官';
+      reference = '《子平真诠》："官星为用，财印相辅，切忌伤官克破"';
+    } else if (monthShishen.includes('印')) {
+      yongshen = getShengWuxing(dayWuxing); // 印星
+      xishen = getKeWuxing(dayWuxing); // 官杀生印
+      jishen = getWoKeWuxing(dayWuxing); // 财星坏印
+      method = '顺用月令（印格）';
+      description = '日主中和，顺用月令印星，喜官杀生印，忌财星坏印';
+      reference = '《子平真诠》："印绶为用，喜官杀生印，忌财星破印"';
+    } else {
+      // 食伤格或调候
+      yongshen = getWoShengWuxing(dayWuxing); // 食伤
+      xishen = getWoKeWuxing(dayWuxing); // 财星
+      jishen = getShengWuxing(dayWuxing); // 印星夺食
+      method = '顺用月令（食伤格）';
+      description = '日主中和，顺用月令食伤，喜财星泄秀，忌印星夺食';
+      reference = '《子平真诠》："食伤吐秀，财星得用，印绶为忌"';
+    }
+  }
   
   return {
-    yongshen: minWuxing,
-    description: descriptions[minWuxing]
+    yongshen,
+    xishen,
+    jishen,
+    choushen: choushen.length > 0 ? choushen : jishen,
+    method,
+    description,
+    reference
   };
 }
 
@@ -1227,8 +1494,8 @@ serve(async (req) => {
       allPatterns: []
     };
 
-    // 用神分析
-    const yongshen = analyzeYongshen(wuxingAnalysis);
+    // 用神分析（基于古籍理论）
+    const xiYongJiShen = analyzeXiYongJiShen(bazi, wuxingAnalysis, specialPatternsResult);
 
     // 大运计算（根据性别和年干阴阳决定顺逆）
     const yearGan = bazi.year[0];
@@ -1254,7 +1521,7 @@ serve(async (req) => {
       shishenAnalysis,
       dayMasterStrength,
       pattern,
-      yongshen,
+      yongshen: xiYongJiShen, // 包含用神、喜神、忌神、仇神的完整分析
       calculationDetails: {
         solarTermInfo: monthInfo ? {
           month: monthInfo.lunarName,
