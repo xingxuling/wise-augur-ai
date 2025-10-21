@@ -407,6 +407,48 @@ export type Database = {
           },
         ]
       }
+      fengshui_records: {
+        Row: {
+          analysis_result: string
+          analysis_type: string
+          build_year: number | null
+          created_at: string
+          description: string | null
+          direction: string
+          floor: number | null
+          house_type: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_result: string
+          analysis_type: string
+          build_year?: number | null
+          created_at?: string
+          description?: string | null
+          direction: string
+          floor?: number | null
+          house_type: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_result?: string
+          analysis_type?: string
+          build_year?: number | null
+          created_at?: string
+          description?: string | null
+          direction?: string
+          floor?: number | null
+          house_type?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       learning_courses: {
         Row: {
           created_at: string
