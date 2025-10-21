@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/card";
-import { Sparkles, BookOpen, Compass, Crown } from "lucide-react";
+import { Sparkles, BookOpen, Compass } from "lucide-react";
 import baziIcon from "@/assets/bazi-icon.png";
-import ziweiIcon from "@/assets/ziwei-icon.png";
 
 const features = [
   {
@@ -9,12 +8,6 @@ const features = [
     title: "八字排盘",
     description: "基于《三命通会》精准算法，深度解析您的命理格局",
     color: "from-purple-500/20 to-pink-500/20",
-  },
-  {
-    icon: ziweiIcon,
-    title: "紫微斗数",
-    description: "星象定位人生，助您洞察命运轨迹与转折点",
-    color: "from-blue-500/20 to-purple-500/20",
   },
   {
     icon: null,
@@ -27,7 +20,7 @@ const features = [
     icon: null,
     lucideIcon: BookOpen,
     title: "AI命理解读",
-    description: "GPT-5驱动的智能分析，提供个性化建议",
+    description: "Google Gemini 2.5 Flash 驱动的智能分析，提供个性化建议",
     color: "from-green-500/20 to-teal-500/20",
   },
 ];
@@ -54,7 +47,7 @@ const Features = () => {
         </div>
 
         {/* Features grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
             <Card
               key={index}
