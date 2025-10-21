@@ -614,6 +614,42 @@ export type Database = {
           },
         ]
       }
+      membership_features: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          feature_key: string
+          feature_name: string
+          feature_value: string
+          id: string
+          tier: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          feature_key: string
+          feature_name: string
+          feature_value: string
+          id?: string
+          tier: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          feature_key?: string
+          feature_name?: string
+          feature_value?: string
+          id?: string
+          tier?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       payment_records: {
         Row: {
           amount: number

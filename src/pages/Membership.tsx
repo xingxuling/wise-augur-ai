@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useMembership, MEMBERSHIP_FEATURES } from '@/hooks/useMembership';
 import { useAIUsage } from '@/hooks/useAIUsage';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +23,9 @@ import {
   BookOpen,
   Gift,
   Share2,
-  MessageSquare
+  MessageSquare,
+  Settings,
+  Shield
 } from 'lucide-react';
 
 
@@ -31,6 +34,7 @@ const Membership = () => {
   const { toast } = useToast();
   const { membership, loading: membershipLoading, refetch } = useMembership();
   const { usageCount, loading: usageLoading } = useAIUsage();
+  const { isAdmin } = useUserRole();
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [loadingSubscriptions, setLoadingSubscriptions] = useState(true);
 
@@ -306,12 +310,42 @@ const Membership = () => {
               )}
             </Card>
 
+            {/* Admin Area */}
+            {isAdmin && (
+              <Card className="p-6 space-y-4 border-primary bg-gradient-to-br from-primary/5 to-accent/5">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-primary" />
+                  <h2 className="text-xl font-semibold">管理员专区</h2>
+                </div>
+                <Separator />
+                
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2"
+                  onClick={() => navigate('/admin/features')}
+                >
+                  <Settings className="w-4 h-4" />
+                  会员权益管理
+                </Button>
+              </Card>
+            )}
+
             {/* Quick Actions */}
             <Card className="p-6 space-y-4">
               <h2 className="text-xl font-semibold">快捷操作</h2>
               <Separator />
               
               <div className="space-y-2">
+                {membership.tier !== 'free' && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-2"
+                    onClick={() => navigate('/subscription')}
+                  >
+                    <Settings className="w-4 h-4" />
+                    订阅管理
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   className="w-full justify-start gap-2"

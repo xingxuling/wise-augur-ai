@@ -77,6 +77,11 @@ const Pricing = () => {
   const { toast } = useToast();
   const [userRegion, setUserRegion] = useState('beijing');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [planFeatures, setPlanFeatures] = useState<Record<string, string[]>>({
+    basic: [],
+    advanced: [],
+    premium: [],
+  });
 
   useEffect(() => {
     // 检查用户登录状态
@@ -89,7 +94,46 @@ const Pricing = () => {
     if (savedRegion) {
       setUserRegion(savedRegion);
     }
+
+    // 获取会员权益配置
+    fetchPlanFeatures();
   }, []);
+
+  const fetchPlanFeatures = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('membership_features')
+        .select('tier, feature_name, feature_value')
+        .order('display_order');
+
+      if (error) throw error;
+
+      const featuresMap: Record<string, string[]> = {
+        basic: [],
+        advanced: [],
+        premium: [],
+      };
+
+      data?.forEach((item) => {
+        const tierMap: Record<string, string> = {
+          basic: 'basic',
+          premium: 'advanced',
+          vip: 'premium',
+        };
+        
+        const mappedTier = tierMap[item.tier];
+        if (mappedTier) {
+          const featureText = `${item.feature_name}${item.feature_value !== 'true' && item.feature_value !== 'false' ? ` (${item.feature_value})` : ''}`;
+          featuresMap[mappedTier].push(featureText);
+        }
+      });
+
+      setPlanFeatures(featuresMap);
+    } catch (error) {
+      console.error('获取权益配置失败:', error);
+      // 使用默认配置
+    }
+  };
 
   const handleSubscribe = async (planType: PlanType) => {
     // 检查登录状态
@@ -178,7 +222,10 @@ const Pricing = () => {
 
                   {/* Features */}
                   <ul className="space-y-3 py-6">
-                    {plan.features.map((feature, featureIndex) => (
+                    {(planFeatures[plan.type] && planFeatures[plan.type].length > 0 
+                      ? planFeatures[plan.type] 
+                      : plan.features
+                    ).map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start gap-3">
                         <Check className={`w-5 h-5 ${plan.popular ? 'text-accent' : 'text-primary'} flex-shrink-0 mt-0.5`} />
                         <span className="text-sm text-muted-foreground">{feature}</span>
