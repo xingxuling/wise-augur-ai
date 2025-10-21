@@ -63,7 +63,7 @@ const Testimonials = () => {
             <span className="text-gradient">真实改变·可见未来</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            100万+用户的命运探索之旅
+            听听用户的真实体验
           </p>
         </div>
 

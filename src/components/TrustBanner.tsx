@@ -1,11 +1,11 @@
-import { Shield, Users, Sparkles, Award } from "lucide-react";
+import { Shield, Sparkles, Award, Globe } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const trustPoints = [
-  { icon: Users, text: "100万+用户信赖", color: "text-primary" },
-  { icon: Shield, text: "98%准确率认证", color: "text-accent" },
-  { icon: Award, text: "传统命理古籍认证", color: "text-primary" },
-  { icon: Sparkles, text: "GPT-5智能驱动", color: "text-accent" },
+  { icon: Globe, text: "专业命理分析服务", color: "text-primary" },
+  { icon: Shield, text: "隐私数据加密保护", color: "text-accent" },
+  { icon: Award, text: "传统命理古籍依据", color: "text-primary" },
+  { icon: Sparkles, text: "Google Gemini AI 驱动", color: "text-accent" },
 ];
 
 const TrustBanner = () => {

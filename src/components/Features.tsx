@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Sparkles, BookOpen, Compass } from "lucide-react";
 import baziIcon from "@/assets/bazi-icon.png";
@@ -8,6 +9,7 @@ const features = [
     title: "八字排盘",
     description: "基于《三命通会》精准算法，深度解析您的命理格局",
     color: "from-purple-500/20 to-pink-500/20",
+    path: "/bazi",
   },
   {
     icon: null,
@@ -15,6 +17,7 @@ const features = [
     title: "风水测算",
     description: "家居、办公风水布局指导，助力运势提升",
     color: "from-amber-500/20 to-orange-500/20",
+    path: "/fengshui",
   },
   {
     icon: null,
@@ -22,10 +25,13 @@ const features = [
     title: "AI命理解读",
     description: "Google Gemini 2.5 Flash 驱动的智能分析，提供个性化建议",
     color: "from-green-500/20 to-teal-500/20",
+    path: "/bazi",
   },
 ];
 
 const Features = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background gradient */}
@@ -51,6 +57,7 @@ const Features = () => {
           {features.map((feature, index) => (
             <Card
               key={index}
+              onClick={() => navigate(feature.path)}
               className="group relative overflow-hidden bg-card/50 backdrop-blur-sm border-border hover:border-primary/50 transition-all duration-500 hover:shadow-[0_0_30px_hsl(280_85%_65%/0.2)] cursor-pointer"
               style={{ animationDelay: `${index * 100}ms` }}
             >
