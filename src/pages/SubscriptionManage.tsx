@@ -5,8 +5,21 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
-import { ArrowLeft, CreditCard, Calendar, AlertCircle, Crown, Sparkles, Zap } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { ArrowLeft, CreditCard, Calendar, AlertCircle, Crown, Sparkles, Zap, AlertTriangle } from 'lucide-react';
 import { useMembership } from '@/hooks/useMembership';
+import { useLanguage } from '@/hooks/useLanguage';
+import { t } from '@/lib/i18n';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 
@@ -41,8 +54,10 @@ const SubscriptionManage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { membership, loading } = useMembership();
+  const { language } = useLanguage();
   const [features, setFeatures] = useState<MembershipFeature[]>([]);
   const [loadingFeatures, setLoadingFeatures] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     fetchFeatures();
@@ -74,6 +89,34 @@ const SubscriptionManage = () => {
 
   const handleUpgrade = () => {
     navigate('/pricing');
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!membership || membership.tier === 'free') return;
+    
+    setCancelling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('cancel-subscription');
+      
+      if (error) throw error;
+      
+      toast({
+        title: t('subscription.cancel.success', language),
+        description: data.message,
+      });
+      
+      // 刷新会员信息
+      window.location.reload();
+    } catch (error) {
+      console.error('取消订阅失败:', error);
+      toast({
+        title: '取消失败',
+        description: error instanceof Error ? error.message : '操作失败，请重试',
+        variant: 'destructive',
+      });
+    } finally {
+      setCancelling(false);
+    }
   };
 
   if (loading) {
@@ -127,9 +170,36 @@ const SubscriptionManage = () => {
               </div>
             </div>
             {membership.tier !== 'free' && membership.tier !== 'vip' && (
-              <Button onClick={handleUpgrade}>
-                升级套餐
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={handleUpgrade}>
+                  {t('membership.upgrade', language)}
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline">
+                      <AlertTriangle className="w-4 h-4 mr-2" />
+                      {t('subscription.cancel', language)}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('subscription.cancel.confirm', language)}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('subscription.cancel.desc', language)}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('cancel', language)}</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleCancelSubscription}
+                        disabled={cancelling}
+                      >
+                        {cancelling ? t('loading', language) : t('confirm', language)}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             )}
           </div>
 
