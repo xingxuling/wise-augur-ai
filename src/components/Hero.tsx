@@ -33,13 +33,14 @@ const Hero = () => {
 
   const handleStartClick = () => {
     if (isAuthenticated) {
-      // 跳转到八字测算页面（稍后创建）
+      // 跳转到八字测算页面
       navigate("/bazi");
     } else {
       // 跳转到登录页面
       navigate("/auth");
     }
   };
+  
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background */}

@@ -1,7 +1,7 @@
 export const translations = {
   'zh-CN': {
     // General
-    'app.title': '通胜AI - 智能八字命理分析',
+    'app.title': '通胜AI',
     'app.description': '基于传统命理的现代AI解读系统',
     'loading': '加载中...',
     'submit': '提交',
@@ -10,6 +10,23 @@ export const translations = {
     'delete': '删除',
     'edit': '编辑',
     'back': '返回',
+    
+    // Hero
+    'hero.title': '智能八字命理分析',
+    'hero.subtitle': '融合千年易学智慧与现代AI技术，为您提供精准的命理解读与人生指引',
+    'hero.cta': '开始测算',
+    'hero.learnMore': '了解更多',
+    
+    // Navigation
+    'nav.home': '首页',
+    'nav.bazi': '八字测算',
+    'nav.learning': '学习中心',
+    'nav.chat': 'AI对话',
+    'nav.membership': '会员中心',
+    'nav.login': '登录',
+    'nav.logout': '退出',
+    'nav.features': '功能',
+    'nav.pricing': '定价',
     
     // Bazi
     'bazi.title': '智能八字解析',
@@ -55,21 +72,6 @@ export const translations = {
     'membership.vip': '尊享版',
     'membership.upgrade': '升级会员',
 
-    // Hero
-    'hero.title': '解锁命运密码',
-    'hero.subtitle': '融合千年智慧与现代AI，为您提供最专业的命理分析与人生指导',
-    'hero.cta': '立即开始',
-    'hero.learnMore': '了解更多',
-    
-    // Navigation
-    'nav.home': '首页',
-    'nav.bazi': '八字测算',
-    'nav.learning': '学习中心',
-    'nav.chat': 'AI对话',
-    'nav.membership': '会员中心',
-    'nav.login': '登录',
-    'nav.logout': '退出',
-
     // Features
     'features.title': '核心功能',
     'features.bazi.title': '智能八字',
@@ -81,7 +83,7 @@ export const translations = {
   },
   'zh-TW': {
     // General
-    'app.title': '通勝AI - 智能八字命理分析',
+    'app.title': '通勝AI',
     'app.description': '基於傳統命理的現代AI解讀系統',
     'loading': '載入中...',
     'submit': '提交',
@@ -90,6 +92,23 @@ export const translations = {
     'delete': '刪除',
     'edit': '編輯',
     'back': '返回',
+    
+    // Hero
+    'hero.title': '智能八字命理分析',
+    'hero.subtitle': '融合千年易學智慧與現代AI技術，為您提供精準的命理解讀與人生指引',
+    'hero.cta': '開始測算',
+    'hero.learnMore': '了解更多',
+    
+    // Navigation
+    'nav.home': '首頁',
+    'nav.bazi': '八字測算',
+    'nav.learning': '學習中心',
+    'nav.chat': 'AI對話',
+    'nav.membership': '會員中心',
+    'nav.login': '登入',
+    'nav.logout': '登出',
+    'nav.features': '功能',
+    'nav.pricing': '定價',
     
     // Bazi
     'bazi.title': '智能八字解析',
@@ -135,21 +154,6 @@ export const translations = {
     'membership.vip': '尊享版',
     'membership.upgrade': '升級會員',
 
-    // Hero
-    'hero.title': '解鎖命運密碼',
-    'hero.subtitle': '融合千年智慧與現代AI，為您提供最專業的命理分析與人生指導',
-    'hero.cta': '立即開始',
-    'hero.learnMore': '了解更多',
-    
-    // Navigation
-    'nav.home': '首頁',
-    'nav.bazi': '八字測算',
-    'nav.learning': '學習中心',
-    'nav.chat': 'AI對話',
-    'nav.membership': '會員中心',
-    'nav.login': '登入',
-    'nav.logout': '登出',
-
     // Features
     'features.title': '核心功能',
     'features.bazi.title': '智能八字',
@@ -161,7 +165,7 @@ export const translations = {
   },
   'en': {
     // General
-    'app.title': 'TongSheng AI - Intelligent BaZi Analysis',
+    'app.title': 'TongSheng AI',
     'app.description': 'Modern AI interpretation based on traditional Chinese astrology',
     'loading': 'Loading...',
     'submit': 'Submit',
@@ -170,6 +174,23 @@ export const translations = {
     'delete': 'Delete',
     'edit': 'Edit',
     'back': 'Back',
+    
+    // Hero
+    'hero.title': 'Intelligent BaZi Analysis',
+    'hero.subtitle': 'Combining millennia of I-Ching wisdom with modern AI technology to provide accurate destiny readings and life guidance',
+    'hero.cta': 'Start Analysis',
+    'hero.learnMore': 'Learn More',
+    
+    // Navigation
+    'nav.home': 'Home',
+    'nav.bazi': 'BaZi Reading',
+    'nav.learning': 'Learning Center',
+    'nav.chat': 'AI Chat',
+    'nav.membership': 'Membership',
+    'nav.login': 'Login',
+    'nav.logout': 'Logout',
+    'nav.features': 'Features',
+    'nav.pricing': 'Pricing',
     
     // Bazi
     'bazi.title': 'Intelligent BaZi Analysis',
@@ -214,21 +235,6 @@ export const translations = {
     'membership.premium': 'Premium',
     'membership.vip': 'VIP',
     'membership.upgrade': 'Upgrade',
-
-    // Hero
-    'hero.title': 'Unlock Your Destiny',
-    'hero.subtitle': 'Combining ancient wisdom with modern AI for professional fortune analysis and life guidance',
-    'hero.cta': 'Get Started',
-    'hero.learnMore': 'Learn More',
-    
-    // Navigation
-    'nav.home': 'Home',
-    'nav.bazi': 'BaZi Reading',
-    'nav.learning': 'Learning Center',
-    'nav.chat': 'AI Chat',
-    'nav.membership': 'Membership',
-    'nav.login': 'Login',
-    'nav.logout': 'Logout',
 
     // Features
     'features.title': 'Core Features',
