@@ -6,6 +6,7 @@ import heroBackground from "@/assets/hero-background.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { MembershipBadge } from "@/components/MembershipBadge";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { AdminBadge } from "@/components/AdminBadge";
 import { useTranslation } from "@/hooks/useTranslation";
 
 const Hero = () => {
@@ -55,6 +56,7 @@ const Hero = () => {
       {/* Top right corner badges */}
       {isAuthenticated && (
         <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
+          <AdminBadge />
           <MembershipBadge />
           <LanguageSelector />
         </div>
