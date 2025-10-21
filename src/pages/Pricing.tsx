@@ -1,11 +1,13 @@
-import { Check, Sparkles, Zap, Crown } from "lucide-react";
+import { Check, Sparkles, Zap, Crown, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { REGIONS, getRegionByValue } from "@/lib/regions";
+import { MembershipBadge } from "@/components/MembershipBadge";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 type PlanType = 'basic' | 'advanced' | 'premium';
 
@@ -162,12 +164,28 @@ const Pricing = () => {
   const currencySymbol = regionData.displayCurrency;
 
   return (
-    <section className="py-24 relative overflow-hidden">
+    <section className="min-h-screen py-12 relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-background/50 to-background" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl" />
 
       <div className="container relative z-10 px-4 mx-auto">
+        {/* Header Navigation */}
+        <div className="flex items-center justify-between mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/')}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            返回首页
+          </Button>
+          <div className="flex items-center gap-3">
+            <MembershipBadge />
+            <LanguageSelector />
+          </div>
+        </div>
+
         {/* Section header */}
         <div className="text-center mb-16 space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card/30 backdrop-blur-md border border-primary/30 text-sm">
