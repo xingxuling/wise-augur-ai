@@ -54,6 +54,30 @@ export const translations = {
     'membership.premium': '进阶版',
     'membership.vip': '尊享版',
     'membership.upgrade': '升级会员',
+
+    // Hero
+    'hero.title': '解锁命运密码',
+    'hero.subtitle': '融合千年智慧与现代AI，为您提供最专业的命理分析与人生指导',
+    'hero.cta': '立即开始',
+    'hero.learnMore': '了解更多',
+    
+    // Navigation
+    'nav.home': '首页',
+    'nav.bazi': '八字测算',
+    'nav.learning': '学习中心',
+    'nav.chat': 'AI对话',
+    'nav.membership': '会员中心',
+    'nav.login': '登录',
+    'nav.logout': '退出',
+
+    // Features
+    'features.title': '核心功能',
+    'features.bazi.title': '智能八字',
+    'features.bazi.desc': '精准计算生辰八字，提供专业命理分析',
+    'features.fengshui.title': '风水分析',
+    'features.fengshui.desc': '基于传统风水理论的智能分析建议',
+    'features.ai.title': 'AI智能对话',
+    'features.ai.desc': '与AI助手深度对话，获取个性化指导',
   },
   'zh-TW': {
     // General
@@ -110,6 +134,30 @@ export const translations = {
     'membership.premium': '進階版',
     'membership.vip': '尊享版',
     'membership.upgrade': '升級會員',
+
+    // Hero
+    'hero.title': '解鎖命運密碼',
+    'hero.subtitle': '融合千年智慧與現代AI，為您提供最專業的命理分析與人生指導',
+    'hero.cta': '立即開始',
+    'hero.learnMore': '了解更多',
+    
+    // Navigation
+    'nav.home': '首頁',
+    'nav.bazi': '八字測算',
+    'nav.learning': '學習中心',
+    'nav.chat': 'AI對話',
+    'nav.membership': '會員中心',
+    'nav.login': '登入',
+    'nav.logout': '登出',
+
+    // Features
+    'features.title': '核心功能',
+    'features.bazi.title': '智能八字',
+    'features.bazi.desc': '精準計算生辰八字，提供專業命理分析',
+    'features.fengshui.title': '風水分析',
+    'features.fengshui.desc': '基於傳統風水理論的智能分析建議',
+    'features.ai.title': 'AI智能對話',
+    'features.ai.desc': '與AI助手深度對話，獲取個性化指導',
   },
   'en': {
     // General
@@ -166,6 +214,30 @@ export const translations = {
     'membership.premium': 'Premium',
     'membership.vip': 'VIP',
     'membership.upgrade': 'Upgrade',
+
+    // Hero
+    'hero.title': 'Unlock Your Destiny',
+    'hero.subtitle': 'Combining ancient wisdom with modern AI for professional fortune analysis and life guidance',
+    'hero.cta': 'Get Started',
+    'hero.learnMore': 'Learn More',
+    
+    // Navigation
+    'nav.home': 'Home',
+    'nav.bazi': 'BaZi Reading',
+    'nav.learning': 'Learning Center',
+    'nav.chat': 'AI Chat',
+    'nav.membership': 'Membership',
+    'nav.login': 'Login',
+    'nav.logout': 'Logout',
+
+    // Features
+    'features.title': 'Core Features',
+    'features.bazi.title': 'BaZi Analysis',
+    'features.bazi.desc': 'Accurate birth chart calculation with professional analysis',
+    'features.fengshui.title': 'Feng Shui',
+    'features.fengshui.desc': 'Intelligent analysis based on traditional Feng Shui principles',
+    'features.ai.title': 'AI Assistant',
+    'features.ai.desc': 'Deep conversations with AI for personalized guidance',
   },
 };
 

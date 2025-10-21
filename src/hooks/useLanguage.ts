@@ -18,6 +18,7 @@ export const useLanguage = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setLanguage('zh-CN');
+        setLoading(false);
         return;
       }
 
@@ -25,11 +26,21 @@ export const useLanguage = () => {
         .from('user_preferences')
         .select('language')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Failed to fetch language:', error);
+        setLoading(false);
+        return;
+      }
+
       if (data) {
         setLanguage(data.language as Language);
+      } else {
+        // Create default preference if not exists
+        await supabase
+          .from('user_preferences')
+          .insert({ user_id: user.id, language: 'zh-CN' });
       }
     } catch (error) {
       console.error('Failed to fetch language:', error);
@@ -43,12 +54,30 @@ export const useLanguage = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
+      // Check if preference exists
+      const { data: existing } = await supabase
         .from('user_preferences')
-        .update({ language: newLanguage })
-        .eq('user_id', user.id);
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (existing) {
+        // Update existing
+        const { error } = await supabase
+          .from('user_preferences')
+          .update({ language: newLanguage })
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      } else {
+        // Insert new
+        const { error } = await supabase
+          .from('user_preferences')
+          .insert({ user_id: user.id, language: newLanguage });
+
+        if (error) throw error;
+      }
+
       setLanguage(newLanguage);
     } catch (error) {
       console.error('Failed to update language:', error);

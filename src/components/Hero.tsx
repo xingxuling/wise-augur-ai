@@ -89,8 +89,17 @@ const Hero = () => {
               <Sparkles className="w-5 h-5 group-hover:animate-spin" />
               {isAuthenticated ? t('hero.cta') : t('nav.login')}
             </Button>
-            <Button variant="mystical" size="xl">
-              了解更多
+            <Button 
+              variant="mystical" 
+              size="xl"
+              onClick={() => {
+                const featuresSection = document.getElementById('features');
+                if (featuresSection) {
+                  featuresSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
+              {t('hero.learnMore')}
             </Button>
           </div>
         </div>
