@@ -1,36 +1,38 @@
-import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Sparkles, BookOpen, Compass } from "lucide-react";
 import baziIcon from "@/assets/bazi-icon.png";
-
-const features = [
-  {
-    icon: baziIcon,
-    title: "八字排盘",
-    description: "基于《三命通会》精准算法，深度解析您的命理格局",
-    color: "from-purple-500/20 to-pink-500/20",
-    path: "/bazi",
-  },
-  {
-    icon: null,
-    lucideIcon: Compass,
-    title: "风水测算",
-    description: "家居、办公风水布局指导，助力运势提升",
-    color: "from-amber-500/20 to-orange-500/20",
-    path: "/fengshui",
-  },
-  {
-    icon: null,
-    lucideIcon: BookOpen,
-    title: "AI命理解读",
-    description: "Google Gemini 2.5 Flash 驱动的智能分析，提供个性化建议",
-    color: "from-green-500/20 to-teal-500/20",
-    path: "/bazi",
-  },
-];
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Features = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const features = [
+    {
+      icon: baziIcon,
+      title: t('features.bazi.title'),
+      description: t('features.bazi.desc'),
+      color: "from-purple-500/20 to-pink-500/20",
+      path: "/bazi",
+    },
+    {
+      icon: null,
+      lucideIcon: Compass,
+      title: t('features.fengshui.title'),
+      description: t('features.fengshui.desc'),
+      color: "from-amber-500/20 to-orange-500/20",
+      path: "/fengshui",
+    },
+    {
+      icon: null,
+      lucideIcon: BookOpen,
+      title: t('features.ai.title'),
+      description: t('features.ai.desc'),
+      color: "from-green-500/20 to-teal-500/20",
+      path: "/chat",
+    },
+  ];
 
   return (
     <section className="py-24 relative overflow-hidden">
@@ -42,7 +44,7 @@ const Features = () => {
         <div className="text-center mb-16 space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card/30 backdrop-blur-md border border-primary/30 text-sm">
             <Sparkles className="w-4 h-4 text-accent" />
-            <span className="text-muted-foreground">核心功能</span>
+            <span className="text-muted-foreground">{t('features.title')}</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold">
             <span className="text-gradient">全方位命理服务</span>
@@ -78,16 +80,20 @@ const Features = () => {
 
                 {/* Content */}
                 <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-foreground group-hover:text-gradient transition-all duration-300">
+                  <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
                     {feature.title}
                   </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
 
-                {/* Hover effect shimmer */}
-                <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100" />
+                {/* Hover arrow */}
+                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-primary">→</span>
+                  </div>
+                </div>
               </div>
             </Card>
           ))}

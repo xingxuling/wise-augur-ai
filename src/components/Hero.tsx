@@ -6,9 +6,11 @@ import heroBackground from "@/assets/hero-background.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { MembershipBadge } from "@/components/MembershipBadge";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Hero = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -69,21 +71,21 @@ const Hero = () => {
 
           {/* Main heading */}
           <h1 className="text-5xl md:text-7xl font-bold leading-tight animate-in slide-in-from-bottom duration-700 delay-100">
-            <span className="text-gradient glow-effect">通胜智慧</span>
+            <span className="text-gradient glow-effect">{t('app.title')}</span>
             <br />
-            <span className="text-foreground">开启命运新篇章</span>
+            <span className="text-foreground">{t('hero.title')}</span>
           </h1>
 
           {/* Description */}
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-in slide-in-from-bottom duration-700 delay-200">
-            融合千年命理文化与前沿AI技术，为您提供精准的命理分析与人生指引
+            {t('hero.subtitle')}
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-in slide-in-from-bottom duration-700 delay-300">
             <Button variant="hero" size="xl" className="group" onClick={handleStartClick}>
               <Sparkles className="w-5 h-5 group-hover:animate-spin" />
-              {isAuthenticated ? "开始测算" : "立即体验"}
+              {isAuthenticated ? t('hero.cta') : t('nav.login')}
             </Button>
             <Button variant="mystical" size="xl">
               了解更多
