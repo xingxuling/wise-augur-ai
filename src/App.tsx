@@ -10,6 +10,7 @@ import Fengshui from "./pages/Fengshui";
 import Checkout from "./pages/Checkout";
 import Share from "./pages/Share";
 import Learning from "./pages/Learning";
+import LessonDetail from "./pages/LessonDetail";
 import Referral from "./pages/Referral";
 import Membership from "./pages/Membership";
 import Pricing from "./pages/Pricing";
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/chat" element={<Chat />} />
           <Route path="/share/:shareCode" element={<Share />} />
           <Route path="/learning" element={<Learning />} />
+          <Route path="/learning/lesson/:lessonId" element={<LessonDetail />} />
           <Route path="/referral" element={<Referral />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
