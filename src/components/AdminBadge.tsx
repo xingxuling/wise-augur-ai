@@ -11,7 +11,7 @@ export const AdminBadge = () => {
 
   const handleClick = () => {
     if (role === 'admin') {
-      navigate('/admin-features');
+      navigate('/admin/features');
     }
   };
 
