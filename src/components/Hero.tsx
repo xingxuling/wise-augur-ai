@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Star } from "lucide-react";
 import heroBackground from "@/assets/hero-background.jpg";
 import { supabase } from "@/integrations/supabase/client";
+import { MembershipBadge } from "@/components/MembershipBadge";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -47,6 +49,14 @@ const Hero = () => {
 
       {/* Gradient glow overlay */}
       <div className="absolute inset-0 opacity-40" style={{ background: 'var(--gradient-glow)' }} />
+
+      {/* Top right corner badges */}
+      {isAuthenticated && (
+        <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
+          <MembershipBadge />
+          <LanguageSelector />
+        </div>
+      )}
 
       {/* Content */}
       <div className="container relative z-10 px-4 py-32 mx-auto text-center">
