@@ -15,6 +15,7 @@ export const MEMBERSHIP_FEATURES = {
     exportImage: true,
     customReading: false,
     priority: 0,
+    fengshui: false,
   },
   basic: {
     aiReadings: 20,
@@ -22,6 +23,7 @@ export const MEMBERSHIP_FEATURES = {
     exportImage: true,
     customReading: false,
     priority: 1,
+    fengshui: true,
   },
   premium: {
     aiReadings: 100,
@@ -29,6 +31,7 @@ export const MEMBERSHIP_FEATURES = {
     exportImage: true,
     customReading: true,
     priority: 2,
+    fengshui: true,
   },
   vip: {
     aiReadings: -1, // unlimited
@@ -36,6 +39,7 @@ export const MEMBERSHIP_FEATURES = {
     exportImage: true,
     customReading: true,
     priority: 3,
+    fengshui: true,
   },
 };
 

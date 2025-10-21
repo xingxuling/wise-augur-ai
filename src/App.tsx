@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Bazi from "./pages/Bazi";
+import Fengshui from "./pages/Fengshui";
 import Checkout from "./pages/Checkout";
 import Share from "./pages/Share";
 import Learning from "./pages/Learning";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/bazi" element={<Bazi />} />
+          <Route path="/fengshui" element={<Fengshui />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/membership" element={<Membership />} />

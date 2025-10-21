@@ -89,22 +89,6 @@ const Hero = () => {
               了解更多
             </Button>
           </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-8 pt-16 max-w-2xl mx-auto animate-in fade-in duration-700 delay-500">
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-gradient">100万+</div>
-              <div className="text-sm text-muted-foreground">信赖用户</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-gradient">98%</div>
-              <div className="text-sm text-muted-foreground">准确率</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-gradient">24/7</div>
-              <div className="text-sm text-muted-foreground">AI在线</div>
-            </div>
-          </div>
         </div>
       </div>
 

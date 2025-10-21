@@ -24,9 +24,9 @@ const Footer = () => {
             <h4 className="font-semibold text-foreground mb-4">产品服务</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="hover:text-primary transition-colors cursor-pointer">八字排盘</li>
-              <li className="hover:text-primary transition-colors cursor-pointer">紫微斗数</li>
-              <li className="hover:text-primary transition-colors cursor-pointer">风水测算</li>
+              <li><a href="/fengshui" className="hover:text-primary transition-colors">风水测算</a></li>
               <li className="hover:text-primary transition-colors cursor-pointer">AI解读</li>
+              <li><a href="/learning" className="hover:text-primary transition-colors">学习中心</a></li>
             </ul>
           </div>
 
