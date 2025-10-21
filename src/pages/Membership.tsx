@@ -17,8 +17,14 @@ import {
   ArrowLeft,
   Calendar,
   TrendingUp,
-  Zap
+  Zap,
+  Calculator,
+  BookOpen,
+  Gift,
+  Share2,
+  MessageSquare
 } from 'lucide-react';
+
 
 const Membership = () => {
   const navigate = useNavigate();
@@ -308,27 +314,62 @@ const Membership = () => {
               <div className="space-y-2">
                 <Button
                   variant="outline"
-                  className="w-full justify-start"
+                  className="w-full justify-start gap-2"
                   onClick={() => navigate('/bazi')}
                 >
+                  <Calculator className="w-4 h-4" />
                   开始新的测算
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full justify-start"
+                  className="w-full justify-start gap-2"
                   onClick={() => navigate('/learning')}
                 >
+                  <BookOpen className="w-4 h-4" />
                   学习命理知识
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2"
+                  onClick={() => navigate('/referral')}
+                >
+                  <Gift className="w-4 h-4" />
+                  邀请好友得奖励
                 </Button>
                 {membership.tier !== 'vip' && (
                   <Button
                     variant="default"
-                    className="w-full justify-start"
+                    className="w-full justify-start gap-2"
                     onClick={() => navigate('/pricing')}
                   >
+                    <Crown className="w-4 h-4" />
                     升级会员方案
                   </Button>
                 )}
+              </div>
+            </Card>
+
+            {/* Referral Promotion Card */}
+            <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Share2 className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold mb-2">邀请好友，共享福利</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    邀请好友注册，双方各得好礼！您获赠免费解读次数，好友享8折优惠。
+                  </p>
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={() => navigate('/referral')}
+                    className="gap-2"
+                  >
+                    <Gift className="w-4 h-4" />
+                    立即邀请
+                  </Button>
+                </div>
               </div>
             </Card>
           </div>

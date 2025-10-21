@@ -1,13 +1,24 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AuthForm from "@/components/auth/AuthForm";
 import heroBackground from "@/assets/hero-background.jpg";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Gift } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [referralCode, setReferralCode] = useState<string | null>(null);
 
   useEffect(() => {
+    // 检查并保存推荐码
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode);
+      sessionStorage.setItem('referralCode', refCode);
+    }
+
     // 检查用户是否已登录
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -42,8 +53,16 @@ const Auth = () => {
       <div className="absolute inset-0 opacity-30" style={{ background: 'var(--gradient-glow)' }} />
 
       {/* Content */}
-      <div className="container relative z-10 px-4 py-16 mx-auto flex items-center justify-center">
-        <AuthForm />
+      <div className="container relative z-10 px-4 py-16 mx-auto flex flex-col items-center justify-center gap-4">
+        {referralCode && (
+          <Alert className="max-w-md bg-primary/10 border-primary/30">
+            <Gift className="w-4 h-4" />
+            <AlertDescription>
+              您通过邀请链接注册，完成注册后将获得<strong className="text-primary">首次开通8折优惠</strong>
+            </AlertDescription>
+          </Alert>
+        )}
+        <AuthForm referralCode={referralCode} />
       </div>
 
       {/* Floating elements */}

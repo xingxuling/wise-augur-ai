@@ -14,3 +14,10 @@ verify_jwt = false
 
 [functions.custom-question-answer]
 verify_jwt = true
+
+[functions.ai-chat]
+verify_jwt = true
+
+[functions.process-referral]
+verify_jwt = false
+

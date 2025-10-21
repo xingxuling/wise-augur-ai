@@ -13,7 +13,11 @@ const authSchema = z.object({
   password: z.string().min(6, { message: "密码至少6个字符" }).max(50),
 });
 
-const AuthForm = () => {
+interface AuthFormProps {
+  referralCode?: string | null;
+}
+
+const AuthForm = ({ referralCode }: AuthFormProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -53,11 +57,16 @@ const AuthForm = () => {
           description: "欢迎回到通胜智慧",
         });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const refCode = referralCode || sessionStorage.getItem('referralCode');
+        
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              referral_code: refCode || undefined,
+            },
           },
         });
         
@@ -72,9 +81,25 @@ const AuthForm = () => {
             throw error;
           }
         } else {
+          // 如果有推荐码,处理推荐奖励
+          if (refCode && data.user) {
+            try {
+              await supabase.functions.invoke('process-referral', {
+                body: {
+                  referralCode: refCode,
+                  newUserId: data.user.id,
+                },
+              });
+            } catch (err) {
+              console.error('处理推荐奖励失败:', err);
+            }
+          }
+
+          sessionStorage.removeItem('referralCode');
+          
           toast({
             title: "注册成功",
-            description: "欢迎加入通胜智慧",
+            description: refCode ? "欢迎加入通胜智慧，您已获得新人优惠" : "欢迎加入通胜智慧",
           });
         }
       }
