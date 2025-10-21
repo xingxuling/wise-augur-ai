@@ -244,7 +244,7 @@ export const MembershipComparison = () => {
 
         <div className="text-center mt-8 space-y-2">
           <p className="text-sm text-muted-foreground">
-            所有付费会员均支持 7 天无理由退款
+            支持银联卡和国际信用卡安全支付
           </p>
           <Button variant="link" onClick={() => navigate("/pricing")}>
             查看详细定价 →

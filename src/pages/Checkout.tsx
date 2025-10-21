@@ -160,7 +160,7 @@ const Checkout = () => {
             返回首页
           </Button>
           <h1 className="text-4xl font-bold text-gradient mb-2">确认订阅</h1>
-          <p className="text-muted-foreground">安全支付 · 7天无理由退款</p>
+          <p className="text-muted-foreground">安全支付 · 数据加密保护</p>
         </div>
 
         {/* Order Summary */}
@@ -233,7 +233,7 @@ const Checkout = () => {
                 ，您的支付信息将被加密保护
               </p>
               <p className="text-xs text-muted-foreground mt-2">
-                7天内可申请无理由退款，退款金额将原路返回
+                目前支持银联卡和国际信用卡支付，更多支付方式即将上线
               </p>
             </div>
           </div>

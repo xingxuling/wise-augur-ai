@@ -134,7 +134,7 @@ const Pricing = () => {
             <span className="text-gradient">选择适合您的方案</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            7天无理由退款 · 随时可取消
+            安全支付 · 随时可取消
           </p>
         </div>
 
