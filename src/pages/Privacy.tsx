@@ -146,7 +146,7 @@ const Privacy = () => {
                 {t('privacy.contact.content')}
               </p>
               <p className="text-foreground mt-4 font-medium">
-                Email: support@tongshen.ai
+                Email: ryan599884@gmail.com
               </p>
             </section>
           </CardContent>
