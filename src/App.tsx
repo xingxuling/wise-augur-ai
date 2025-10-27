@@ -18,6 +18,7 @@ import Pricing from "./pages/Pricing";
 import Chat from "./pages/Chat";
 import SubscriptionManage from "./pages/SubscriptionManage";
 import AdminFeatures from "./pages/AdminFeatures";
+import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/referral" element={<Referral />} />
           <Route path="/subscription" element={<SubscriptionManage />} />
           <Route path="/admin/features" element={<AdminFeatures />} />
+          <Route path="/privacy" element={<Privacy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

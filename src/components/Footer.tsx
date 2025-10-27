@@ -45,7 +45,7 @@ const Footer = () => {
             <h4 className="font-semibold text-foreground mb-4">{t('footer.help')}</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="hover:text-primary transition-colors cursor-pointer">使用指南</li>
-              <li className="hover:text-primary transition-colors cursor-pointer">{t('footer.privacy')}</li>
+              <li><Link to="/privacy" className="hover:text-primary transition-colors">{t('footer.privacy')}</Link></li>
               <li className="hover:text-primary transition-colors cursor-pointer">{t('footer.terms')}</li>
             </ul>
           </div>
