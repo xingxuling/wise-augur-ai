@@ -1,17 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AIChat } from '@/components/chat/AIChat';
 import { ChatHistory } from '@/components/chat/ChatHistory';
 import { UsageStats } from '@/components/chat/UsageStats';
+import { useTranslation } from '@/hooks/useTranslation';
+import { MembershipBadge } from '@/components/MembershipBadge';
+import { LanguageSelector } from '@/components/LanguageSelector';
+import { supabase } from '@/integrations/supabase/client';
 
 const Chat = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const baziRecordId = searchParams.get('baziRecordId') || undefined;
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSelectSession = (sessionId: string) => {
     setSelectedSessionId(sessionId);
@@ -38,17 +56,21 @@ const Chat = () => {
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              返回
+              {t('back')}
             </Button>
-            <Button onClick={handleNewChat}>
-              <Plus className="w-4 h-4 mr-2" />
-              新对话
-            </Button>
+            <div className="flex items-center gap-3">
+              {isAuthenticated && <MembershipBadge />}
+              <LanguageSelector />
+              <Button onClick={handleNewChat}>
+                <Plus className="w-4 h-4 mr-2" />
+                {t('chat.new') || '新对话'}
+              </Button>
+            </div>
           </div>
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold">AI 命理问答</h1>
+            <h1 className="text-3xl font-bold">{t('nav.chat')}</h1>
             <p className="text-muted-foreground">
-              与专业命理顾问对话，获取个性化解读与建议
+              {t('chat.subtitle') || '与专业命理顾问对话，获取个性化解读与建议'}
             </p>
           </div>
         </div>

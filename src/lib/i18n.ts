@@ -30,6 +30,11 @@ export const translations = {
     'hero.title': '探索命运密码',
     'hero.subtitle': '基于古法智慧与现代AI的深度解析',
     'hero.cta': '开始测算',
+    'hero.learnMore': '了解更多',
+    
+    // Chat
+    'chat.new': '新对话',
+    'chat.subtitle': '与专业命理顾问对话，获取个性化解读与建议',
     
     // Features
     'features.title': '核心功能',
@@ -103,7 +108,49 @@ export const translations = {
     'footer.contact': '联系我们',
     'footer.terms': '服务条款',
     'footer.privacy': '隐私政策',
-    'footer.copyright': '© 2025 通胜AI. 数据加密保护用户隐私',
+    'footer.copyright': '© 2025 通胜知命AI. 数据加密保护用户隐私',
+    'footer.guide': '使用指南',
+    'footer.disclaimer': '本站内容仅供参考，请勿过度迷信',
+    
+    // Features Section
+    'features.section.title': '全方位命理服务',
+    'features.section.desc': '传统文化与AI技术的完美融合',
+    'features.learning.title': '命理学堂',
+    'features.learning.desc': '系统化学习八字命理，从入门到精通的完整课程',
+    'features.referral.title': '邀请好友',
+    'features.referral.desc': '分享给好友，双方都能获得额外AI分析次数',
+    'features.membership.title': '会员中心',
+    'features.membership.desc': '解锁更多高级功能，享受专属会员权益',
+    
+    // Terms of Service
+    'terms.title': '服务条款',
+    'terms.lastUpdated': '最后更新',
+    'terms.section1.title': '1. 服务说明',
+    'terms.section1.content': '通胜知命AI（以下简称"本服务"）是一款基于人工智能技术的命理分析工具。本服务仅供娱乐和参考目的，不构成任何专业建议。',
+    'terms.section2.title': '2. 用户责任',
+    'terms.section2.content': '您同意合法使用本服务，不得用于任何非法或未经授权的目的。您对通过本服务提交的所有内容负责。',
+    'terms.section3.title': '3. 免责声明',
+    'terms.section3.content': '本服务提供的所有分析结果仅供参考，不应作为重大人生决策的唯一依据。我们不对因使用本服务而产生的任何直接或间接损失负责。',
+    'terms.section4.title': '4. 知识产权',
+    'terms.section4.content': '本服务的所有内容、设计、算法和技术均受知识产权法保护。未经授权，不得复制、修改或分发。',
+    'terms.section5.title': '5. 服务变更',
+    'terms.section5.content': '我们保留随时修改或终止服务的权利。重大变更将提前通知用户。',
+    'terms.section6.title': '6. 适用法律',
+    'terms.section6.content': '本条款受中华人民共和国法律管辖。如有争议，应通过友好协商解决。',
+    
+    // Guide
+    'guide.title': '使用指南',
+    'guide.subtitle': '快速上手通胜知命AI',
+    'guide.section1.title': '八字测算',
+    'guide.section1.content': '输入您的出生年月日时，系统将自动计算八字命盘，并提供详细的命理分析。',
+    'guide.section2.title': '风水分析',
+    'guide.section2.content': '输入房屋朝向、楼层等信息，获取专业的风水布局建议。',
+    'guide.section3.title': 'AI对话',
+    'guide.section3.content': '与AI命理师进行深度对话，解答您的命理疑问。',
+    'guide.section4.title': '学习中心',
+    'guide.section4.content': '系统化的命理课程，帮助您从入门到精通。',
+    'guide.section5.title': '会员权益',
+    'guide.section5.content': '升级会员享受更多AI分析次数和专属功能。',
     
     // Privacy Policy
     'privacy.title': '隐私政策',
@@ -168,6 +215,11 @@ export const translations = {
     'hero.title': '探索命運密碼',
     'hero.subtitle': '基於古法智慧與現代AI的深度解析',
     'hero.cta': '開始測算',
+    'hero.learnMore': '了解更多',
+    
+    // Chat
+    'chat.new': '新對話',
+    'chat.subtitle': '與專業命理顧問對話，獲取個性化解讀與建議',
     
     // Features
     'features.title': '核心功能',
@@ -241,7 +293,49 @@ export const translations = {
     'footer.contact': '聯繫我們',
     'footer.terms': '服務條款',
     'footer.privacy': '隱私政策',
-    'footer.copyright': '© 2025 通勝AI. 數據加密保護用戶隱私',
+    'footer.copyright': '© 2025 通勝知命AI. 數據加密保護用戶隱私',
+    'footer.guide': '使用指南',
+    'footer.disclaimer': '本站內容僅供參考，請勿過度迷信',
+    
+    // Features Section
+    'features.section.title': '全方位命理服務',
+    'features.section.desc': '傳統文化與AI技術的完美融合',
+    'features.learning.title': '命理學堂',
+    'features.learning.desc': '系統化學習八字命理，從入門到精通的完整課程',
+    'features.referral.title': '邀請好友',
+    'features.referral.desc': '分享給好友，雙方都能獲得額外AI分析次數',
+    'features.membership.title': '會員中心',
+    'features.membership.desc': '解鎖更多高級功能，享受專屬會員權益',
+    
+    // Terms of Service
+    'terms.title': '服務條款',
+    'terms.lastUpdated': '最後更新',
+    'terms.section1.title': '1. 服務說明',
+    'terms.section1.content': '通勝知命AI（以下簡稱「本服務」）是一款基於人工智能技術的命理分析工具。本服務僅供娛樂和參考目的，不構成任何專業建議。',
+    'terms.section2.title': '2. 用戶責任',
+    'terms.section2.content': '您同意合法使用本服務，不得用於任何非法或未經授權的目的。您對通過本服務提交的所有內容負責。',
+    'terms.section3.title': '3. 免責聲明',
+    'terms.section3.content': '本服務提供的所有分析結果僅供參考，不應作為重大人生決策的唯一依據。我們不對因使用本服務而產生的任何直接或間接損失負責。',
+    'terms.section4.title': '4. 知識產權',
+    'terms.section4.content': '本服務的所有內容、設計、算法和技術均受知識產權法保護。未經授權，不得複製、修改或分發。',
+    'terms.section5.title': '5. 服務變更',
+    'terms.section5.content': '我們保留隨時修改或終止服務的權利。重大變更將提前通知用戶。',
+    'terms.section6.title': '6. 適用法律',
+    'terms.section6.content': '本條款受中華人民共和國法律管轄。如有爭議，應通過友好協商解決。',
+    
+    // Guide
+    'guide.title': '使用指南',
+    'guide.subtitle': '快速上手通勝知命AI',
+    'guide.section1.title': '八字測算',
+    'guide.section1.content': '輸入您的出生年月日時，系統將自動計算八字命盤，並提供詳細的命理分析。',
+    'guide.section2.title': '風水分析',
+    'guide.section2.content': '輸入房屋朝向、樓層等資訊，獲取專業的風水佈局建議。',
+    'guide.section3.title': 'AI對話',
+    'guide.section3.content': '與AI命理師進行深度對話，解答您的命理疑問。',
+    'guide.section4.title': '學習中心',
+    'guide.section4.content': '系統化的命理課程，幫助您從入門到精通。',
+    'guide.section5.title': '會員權益',
+    'guide.section5.content': '升級會員享受更多AI分析次數和專屬功能。',
     
     // Privacy Policy
     'privacy.title': '隱私政策',
@@ -306,6 +400,11 @@ export const translations = {
     'hero.title': 'Discover Your Destiny',
     'hero.subtitle': 'Deep insights powered by ancient wisdom and modern AI',
     'hero.cta': 'Start Analysis',
+    'hero.learnMore': 'Learn More',
+    
+    // Chat
+    'chat.new': 'New Chat',
+    'chat.subtitle': 'Chat with a professional destiny advisor for personalized insights',
     
     // Features
     'features.title': 'Core Features',
@@ -379,7 +478,49 @@ export const translations = {
     'footer.contact': 'Contact',
     'footer.terms': 'Terms of Service',
     'footer.privacy': 'Privacy Policy',
-    'footer.copyright': '© 2025 TongSheng AI. User privacy protected with data encryption',
+    'footer.copyright': '© 2025 TongSheng Zhiming AI. User privacy protected with data encryption',
+    'footer.guide': 'User Guide',
+    'footer.disclaimer': 'Content is for reference only. Please do not rely on it excessively.',
+    
+    // Features Section
+    'features.section.title': 'Comprehensive Destiny Services',
+    'features.section.desc': 'A perfect fusion of traditional culture and AI technology',
+    'features.learning.title': 'Astrology Academy',
+    'features.learning.desc': 'Systematic BaZi learning from beginner to master level',
+    'features.referral.title': 'Invite Friends',
+    'features.referral.desc': 'Share with friends and both get extra AI analysis credits',
+    'features.membership.title': 'Membership',
+    'features.membership.desc': 'Unlock premium features and exclusive member benefits',
+    
+    // Terms of Service
+    'terms.title': 'Terms of Service',
+    'terms.lastUpdated': 'Last Updated',
+    'terms.section1.title': '1. Service Description',
+    'terms.section1.content': 'TongSheng Zhiming AI ("the Service") is an AI-powered destiny analysis tool. This Service is intended for entertainment and reference purposes only and does not constitute professional advice.',
+    'terms.section2.title': '2. User Responsibilities',
+    'terms.section2.content': 'You agree to use this Service lawfully and not for any illegal or unauthorized purposes. You are responsible for all content you submit through this Service.',
+    'terms.section3.title': '3. Disclaimer',
+    'terms.section3.content': 'All analysis results provided by this Service are for reference only and should not be the sole basis for major life decisions. We are not liable for any direct or indirect losses resulting from the use of this Service.',
+    'terms.section4.title': '4. Intellectual Property',
+    'terms.section4.content': 'All content, designs, algorithms, and technologies of this Service are protected by intellectual property laws. Unauthorized reproduction, modification, or distribution is prohibited.',
+    'terms.section5.title': '5. Service Changes',
+    'terms.section5.content': 'We reserve the right to modify or terminate the Service at any time. Users will be notified in advance of significant changes.',
+    'terms.section6.title': '6. Governing Law',
+    'terms.section6.content': 'These Terms are governed by the laws of the People\'s Republic of China. Any disputes shall be resolved through friendly negotiation.',
+    
+    // Guide
+    'guide.title': 'User Guide',
+    'guide.subtitle': 'Get started with TongSheng Zhiming AI',
+    'guide.section1.title': 'BaZi Analysis',
+    'guide.section1.content': 'Enter your birth date and time, and the system will automatically calculate your BaZi chart and provide detailed destiny analysis.',
+    'guide.section2.title': 'Feng Shui Analysis',
+    'guide.section2.content': 'Enter your home\'s orientation and floor information to get professional Feng Shui layout recommendations.',
+    'guide.section3.title': 'AI Chat',
+    'guide.section3.content': 'Have in-depth conversations with the AI destiny master to answer your questions about fate.',
+    'guide.section4.title': 'Learning Center',
+    'guide.section4.content': 'Systematic destiny courses to help you go from beginner to expert.',
+    'guide.section5.title': 'Membership Benefits',
+    'guide.section5.content': 'Upgrade your membership for more AI analysis credits and exclusive features.',
     
     // Privacy Policy
     'privacy.title': 'Privacy Policy',

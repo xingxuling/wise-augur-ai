@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   Calculator,
   MessageSquare,
@@ -16,16 +17,24 @@ import {
 
 export const QuickNav = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
+  // 在这些页面隐藏快速导航
+  const hiddenPaths = ['/auth', '/privacy', '/terms', '/guide', '/share'];
+  if (hiddenPaths.some(path => location.pathname.startsWith(path))) {
+    return null;
+  }
+
   const quickLinks = [
-    { icon: Home, label: '首页', path: '/', color: 'text-primary' },
-    { icon: Calculator, label: '八字测算', path: '/bazi', color: 'text-purple-500' },
-    { icon: Compass, label: '风水分析', path: '/fengshui', color: 'text-amber-500' },
-    { icon: MessageSquare, label: 'AI对话', path: '/chat', color: 'text-blue-500' },
-    { icon: BookOpen, label: '学习中心', path: '/learning', color: 'text-green-500' },
-    { icon: Gift, label: '邀请好友', path: '/referral', color: 'text-pink-500' },
-    { icon: Crown, label: '会员中心', path: '/membership', color: 'text-amber-600' },
+    { icon: Home, label: t('nav.home'), path: '/', color: 'text-primary' },
+    { icon: Calculator, label: t('nav.bazi'), path: '/bazi', color: 'text-purple-500' },
+    { icon: Compass, label: t('nav.fengshui'), path: '/fengshui', color: 'text-amber-500' },
+    { icon: MessageSquare, label: t('nav.chat'), path: '/chat', color: 'text-blue-500' },
+    { icon: BookOpen, label: t('nav.learning'), path: '/learning', color: 'text-green-500' },
+    { icon: Gift, label: t('features.referral.title'), path: '/referral', color: 'text-pink-500' },
+    { icon: Crown, label: t('nav.membership'), path: '/membership', color: 'text-amber-600' },
   ];
 
   return (
@@ -53,7 +62,7 @@ export const QuickNav = () => {
           <Card className="fixed bottom-24 right-6 w-72 p-4 z-50 shadow-2xl border-primary/20 bg-card/95 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-300">
             <div className="space-y-2">
               <div className="pb-2 mb-2 border-b border-border">
-                <h3 className="font-semibold text-sm text-muted-foreground">快速导航</h3>
+                <h3 className="font-semibold text-sm text-muted-foreground">{t('nav.home')}</h3>
               </div>
               
               {quickLinks.map((link) => (
