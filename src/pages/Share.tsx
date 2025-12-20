@@ -49,11 +49,8 @@ export default function Share() {
 
         setShareData(data);
 
-        // 增加查看次数
-        await supabase
-          .from('reading_shares')
-          .update({ views_count: data.views_count + 1 })
-          .eq('id', data.id);
+        // 使用安全的RPC函数增加查看次数（原子操作，无竞态条件）
+        await supabase.rpc('increment_share_views', { share_id: data.id });
 
       } catch (error) {
         console.error('Failed to fetch share:', error);
