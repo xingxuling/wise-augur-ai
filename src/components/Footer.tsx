@@ -36,7 +36,7 @@ const Footer = () => {
             <h4 className="font-semibold text-foreground mb-4">{t('footer.about')}</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link to="/pricing" className="hover:text-primary transition-colors">{t('nav.pricing')}</Link></li>
-              <li><Link to="/referral" className="hover:text-primary transition-colors">邀请有礼</Link></li>
+              <li><Link to="/referral" className="hover:text-primary transition-colors">{t('features.referral.title')}</Link></li>
               <li><Link to="/membership" className="hover:text-primary transition-colors">{t('nav.membership')}</Link></li>
             </ul>
           </div>
@@ -44,9 +44,9 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">{t('footer.help')}</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="hover:text-primary transition-colors cursor-pointer">使用指南</li>
+              <li><Link to="/guide" className="hover:text-primary transition-colors">{t('footer.guide')}</Link></li>
               <li><Link to="/privacy" className="hover:text-primary transition-colors">{t('footer.privacy')}</Link></li>
-              <li className="hover:text-primary transition-colors cursor-pointer">{t('footer.terms')}</li>
+              <li><Link to="/terms" className="hover:text-primary transition-colors">{t('footer.terms')}</Link></li>
             </ul>
           </div>
         </div>
@@ -57,7 +57,7 @@ const Footer = () => {
             {t('footer.copyright')}
           </p>
           <p className="text-xs text-muted-foreground">
-            本站内容仅供参考，请勿过度迷信
+            {t('footer.disclaimer')}
           </p>
         </div>
       </div>

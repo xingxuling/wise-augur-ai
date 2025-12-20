@@ -55,13 +55,15 @@ const Hero = () => {
       <div className="absolute inset-0 opacity-40" style={{ background: 'var(--gradient-glow)' }} />
 
       {/* Top right corner badges */}
-      {isAuthenticated && (
-        <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
-          <AdminBadge />
-          <MembershipBadge />
-          <LanguageSelector />
-        </div>
-      )}
+      <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
+        {isAuthenticated && (
+          <>
+            <AdminBadge />
+            <MembershipBadge />
+          </>
+        )}
+        <LanguageSelector />
+      </div>
 
       {/* Content */}
       <div className="container relative z-10 px-4 py-32 mx-auto text-center">

@@ -19,6 +19,8 @@ import Chat from "./pages/Chat";
 import SubscriptionManage from "./pages/SubscriptionManage";
 import AdminFeatures from "./pages/AdminFeatures";
 import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Guide from "./pages/Guide";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +48,8 @@ const App = () => (
           <Route path="/subscription" element={<SubscriptionManage />} />
           <Route path="/admin/features" element={<AdminFeatures />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/guide" element={<Guide />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

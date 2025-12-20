@@ -47,10 +47,10 @@ const Features = () => {
             <span className="text-muted-foreground">{t('features.title')}</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold">
-            <span className="text-gradient">全方位命理服务</span>
+            <span className="text-gradient">{t('features.section.title')}</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            传统文化与AI技术的完美融合
+            {t('features.section.desc')}
           </p>
         </div>
 

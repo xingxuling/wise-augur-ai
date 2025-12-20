@@ -84,7 +84,7 @@ export const ReferralSystem = () => {
     toast.success('邀请码已复制');
   };
 
-  const shareUrl = `${window.location.origin}?ref=${referralCode}`;
+  const shareUrl = `${window.location.origin}/auth?ref=${referralCode}`;
 
   const copyShareUrl = () => {
     navigator.clipboard.writeText(shareUrl);
