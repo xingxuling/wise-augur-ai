@@ -1183,7 +1183,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_share_views: { Args: { share_id: string }; Returns: undefined }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      validate_referral_code: {
+        Args: { code_to_check: string }
+        Returns: {
+          is_valid: boolean
+          referral_code_id: string
+          referrer_user_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "user" | "vip" | "admin"
