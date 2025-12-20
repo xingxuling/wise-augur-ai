@@ -115,43 +115,43 @@ const Membership = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Header - 移动端优化 */}
       <div className="bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-4 sm:py-8">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('/')}
-            className="mb-4"
+            className="mb-3 sm:mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             返回
           </Button>
           
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold">会员中心</h1>
-              <p className="text-muted-foreground">管理您的会员权益和订阅</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+            <div className="space-y-1 sm:space-y-2">
+              <h1 className="text-2xl sm:text-3xl font-bold">会员中心</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">管理您的会员权益和订阅</p>
             </div>
             
-            <Badge variant="outline" className={`gap-2 px-4 py-2 ${tierColors[membership.tier]}`}>
-              {TierIcon && <TierIcon className="w-5 h-5" />}
-              <span className="text-lg font-semibold">{tierLabels[membership.tier]}</span>
+            <Badge variant="outline" className={`gap-2 px-3 sm:px-4 py-1.5 sm:py-2 self-start sm:self-auto ${tierColors[membership.tier]}`}>
+              {TierIcon && <TierIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
+              <span className="text-sm sm:text-lg font-semibold">{tierLabels[membership.tier]}</span>
             </Badge>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-6">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
+        <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Left Column - Current Plan */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Current Status */}
-            <Card className="p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">当前方案</h2>
+            <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+                <h2 className="text-lg sm:text-xl font-semibold">当前方案</h2>
                 {membership.tier !== 'vip' && (
-                  <Button onClick={() => navigate('/pricing')} size="sm">
+                  <Button onClick={() => navigate('/pricing')} size="sm" className="self-start sm:self-auto">
                     <Zap className="w-4 h-4 mr-2" />
                     升级会员
                   </Button>
@@ -160,10 +160,10 @@ const Membership = () => {
 
               <Separator />
 
-              {/* Features List */}
-              <div className="space-y-4">
-                <h3 className="font-medium text-sm text-muted-foreground">您的权益</h3>
-                <div className="grid md:grid-cols-2 gap-3">
+              {/* Features List - 移动端网格优化 */}
+              <div className="space-y-3 sm:space-y-4">
+                <h3 className="font-medium text-xs sm:text-sm text-muted-foreground">您的权益</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                     <Check className="w-5 h-5 text-primary mt-0.5" />
                     <div>

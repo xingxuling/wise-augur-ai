@@ -35,32 +35,32 @@ const Features = () => {
   ];
 
   return (
-    <section id="features" className="py-24 relative overflow-hidden">
+    <section id="features" className="py-16 sm:py-24 relative overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background to-background/50" />
       
       <div className="container relative z-10 px-4 mx-auto">
-        {/* Section header */}
-        <div className="text-center mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card/30 backdrop-blur-md border border-primary/30 text-sm">
-            <Sparkles className="w-4 h-4 text-accent" />
+        {/* Section header - 移动端优化 */}
+        <div className="text-center mb-10 sm:mb-16 space-y-3 sm:space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-card/30 backdrop-blur-md border border-primary/30 text-xs sm:text-sm">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent" />
             <span className="text-muted-foreground">{t('features.title')}</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold">
             <span className="text-gradient">{t('features.section.title')}</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
             {t('features.section.desc')}
           </p>
         </div>
 
-        {/* Features grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Features grid - 移动端优化 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {features.map((feature, index) => (
             <Card
               key={index}
               onClick={() => navigate(feature.path)}
-              className="group relative overflow-hidden bg-card/50 backdrop-blur-sm border-border hover:border-primary/50 transition-all duration-500 hover:shadow-[0_0_30px_hsl(280_85%_65%/0.2)] cursor-pointer"
+              className="group relative overflow-hidden bg-card/50 backdrop-blur-sm border-border hover:border-primary/50 transition-all duration-500 hover:shadow-[0_0_30px_hsl(280_85%_65%/0.2)] cursor-pointer active:scale-[0.98]"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* Gradient overlay */}
@@ -68,30 +68,30 @@ const Features = () => {
                 className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
               />
               
-              <div className="relative p-6 space-y-4">
+              <div className="relative p-4 sm:p-6 space-y-3 sm:space-y-4">
                 {/* Icon */}
-                <div className="w-16 h-16 rounded-xl bg-card/80 backdrop-blur-sm border border-primary/30 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-card/80 backdrop-blur-sm border border-primary/30 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500">
                   {feature.icon ? (
-                    <img src={feature.icon} alt={feature.title} className="w-12 h-12 object-contain" />
+                    <img src={feature.icon} alt={feature.title} className="w-8 h-8 sm:w-12 sm:h-12 object-contain" />
                   ) : feature.lucideIcon ? (
-                    <feature.lucideIcon className="w-8 h-8 text-primary" />
+                    <feature.lucideIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
                   ) : null}
                 </div>
 
                 {/* Content */}
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
                     {feature.title}
                   </h3>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
 
                 {/* Hover arrow */}
-                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                    <span className="text-primary">→</span>
+                <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-primary text-sm sm:text-base">→</span>
                   </div>
                 </div>
               </div>

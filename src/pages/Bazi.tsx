@@ -286,16 +286,19 @@ const Bazi = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-background/50 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/50 py-6 sm:py-12">
       <div className="container px-4 mx-auto max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <Button variant="ghost" onClick={() => navigate("/")}>
+        {/* Header - 移动端响应式 */}
+        <div className="mb-6 sm:mb-8">
+          {/* 移动端：顶部工具栏 */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="self-start">
               <ArrowLeft className="w-4 h-4 mr-2" />
               返回首页
             </Button>
-            <div className="flex items-center gap-3">
+            
+            {/* 移动端：水平滚动工具栏 */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
               {!result && (
                 <>
                   <ReadingHistory onSelectRecord={(record) => {
@@ -311,18 +314,20 @@ const Bazi = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => navigate("/membership")}
+                className="flex-shrink-0"
               >
-                <Crown className="w-4 h-4 mr-2" />
-                会员中心
+                <Crown className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">会员中心</span>
               </Button>
               {recordId && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => navigate(`/chat?baziRecordId=${recordId}`)}
+                  className="flex-shrink-0"
                 >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  AI问答
+                  <MessageSquare className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">AI问答</span>
                 </Button>
               )}
               <AdminBadge />
@@ -330,27 +335,28 @@ const Bazi = () => {
               <LanguageSelector />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-gradient mb-2">智能八字解析</h1>
-          <p className="text-muted-foreground">输入您的出生信息，获取精准命理分析</p>
+          <h1 className="text-2xl sm:text-4xl font-bold text-gradient mb-1 sm:mb-2">智能八字解析</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">输入您的出生信息，获取精准命理分析</p>
         </div>
 
         {/* Usage Stats */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <UsageStats />
         </div>
 
-        {/* Input Form */}
+        {/* Input Form - 移动端优化 */}
         {!result && (
-          <Card className="p-8 bg-card/80 backdrop-blur-md border-primary/20">
-            <form onSubmit={handleCalculate} className="space-y-6">
-              {/* 历法切换 */}
-              <div className="flex items-center justify-center gap-2 p-3 bg-background/50 rounded-lg border border-primary/20">
-                <CalendarIcon className="w-5 h-5 text-primary" />
+          <Card className="p-4 sm:p-8 bg-card/80 backdrop-blur-md border-primary/20">
+            <form onSubmit={handleCalculate} className="space-y-4 sm:space-y-6">
+              {/* 历法切换 - 移动端优化 */}
+              <div className="flex flex-wrap items-center justify-center gap-2 p-2 sm:p-3 bg-background/50 rounded-lg border border-primary/20">
+                <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 <Button
                   type="button"
                   variant={calendarType === 'solar' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setCalendarType('solar')}
+                  className="text-xs sm:text-sm"
                 >
                   公历
                 </Button>
@@ -359,11 +365,12 @@ const Bazi = () => {
                   variant={calendarType === 'lunar' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setCalendarType('lunar')}
+                  className="text-xs sm:text-sm"
                 >
                   农历
                 </Button>
-                <span className="text-sm text-muted-foreground ml-2">
-                  {calendarType === 'solar' ? '公历生日' : '农历生日（按节气）'}
+                <span className="text-xs sm:text-sm text-muted-foreground">
+                  {calendarType === 'solar' ? '公历生日' : '农历生日'}
                 </span>
               </div>
 
