@@ -54,8 +54,8 @@ const Hero = () => {
       {/* Gradient glow overlay */}
       <div className="absolute inset-0 opacity-40" style={{ background: 'var(--gradient-glow)' }} />
 
-      {/* Top right corner badges */}
-      <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
+      {/* Top right corner badges - 移动端优化 */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 flex items-center gap-2 sm:gap-3">
         {isAuthenticated && (
           <>
             <AdminBadge />
@@ -65,36 +65,37 @@ const Hero = () => {
         <LanguageSelector />
       </div>
 
-      {/* Content */}
-      <div className="container relative z-10 px-4 py-32 mx-auto text-center">
-        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-1000">
+      {/* Content - 移动端优化 */}
+      <div className="container relative z-10 px-4 sm:px-6 py-20 sm:py-32 mx-auto text-center">
+        <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-1000">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card/30 backdrop-blur-md border border-primary/30 text-sm animate-in slide-in-from-top duration-700">
-            <Star className="w-4 h-4 text-accent animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-card/30 backdrop-blur-md border border-primary/30 text-xs sm:text-sm animate-in slide-in-from-top duration-700">
+            <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent animate-pulse" />
             <span className="text-muted-foreground">AI赋能 · 传统智慧</span>
           </div>
 
-          {/* Main heading */}
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight animate-in slide-in-from-bottom duration-700 delay-100">
+          {/* Main heading - 移动端响应式字体 */}
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold leading-tight animate-in slide-in-from-bottom duration-700 delay-100">
             <span className="text-gradient glow-effect">{t('app.title')}</span>
             <br />
-            <span className="text-foreground">{t('hero.title')}</span>
+            <span className="text-foreground text-2xl sm:text-4xl md:text-5xl">{t('hero.title')}</span>
           </h1>
 
-          {/* Description */}
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-in slide-in-from-bottom duration-700 delay-200">
+          {/* Description - 移动端优化 */}
+          <p className="text-base sm:text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2 animate-in slide-in-from-bottom duration-700 delay-200">
             {t('hero.subtitle')}
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-in slide-in-from-bottom duration-700 delay-300">
-            <Button variant="hero" size="xl" className="group" onClick={handleStartClick}>
+          {/* CTA Buttons - 移动端全宽按钮 */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-4 px-4 sm:px-0 animate-in slide-in-from-bottom duration-700 delay-300">
+            <Button variant="hero" size="lg" className="group w-full sm:w-auto" onClick={handleStartClick}>
               <Sparkles className="w-5 h-5 group-hover:animate-spin" />
               {isAuthenticated ? t('hero.cta') : t('nav.login')}
             </Button>
             <Button 
               variant="mystical" 
-              size="xl"
+              size="lg"
+              className="w-full sm:w-auto"
               onClick={() => {
                 const featuresSection = document.getElementById('features');
                 if (featuresSection) {
@@ -108,9 +109,9 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Floating elements */}
-      <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-20 right-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
+      {/* Floating elements - 移动端隐藏或缩小 */}
+      <div className="hidden sm:block absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-float" />
+      <div className="hidden sm:block absolute bottom-20 right-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
     </section>
   );
 };
